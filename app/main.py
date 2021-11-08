@@ -37,35 +37,29 @@ def get_city_url(city: str, unit: str = 'metric'):
 
 async def fetch_url_data(session, url, country, city):
     """Get info from single city"""
-    try:
-        async with session.get(url) as response:
-            resp = await response.json()
-            city_weather = {
-                'country': country,
-                'city': city,
-                'temperature': resp['main']['temp'],
-                'description': resp['weather'][0]['description'],
-            }
-    except Exception as e:
-        print('exc - ', e)
-    else:
-        return city_weather
+    async with session.get(url) as response:
+        resp = await response.json()
+        city_weather = {
+            'country': country,
+            'city': city,
+            'temperature': resp['main']['temp'],
+            'description': resp['weather'][0]['description'],
+        }
+    return city_weather
 
 
 @app.get('/cities')
 async def main():
     """Get route for all cities"""
-    start = time.time()
     tasks = []
     async with ClientSession() as session:
-        for country in DEFAULT_INFO:
-            for city in DEFAULT_INFO[country]:
+        loop = asyncio.get_event_loop()
+        for country, cities in DEFAULT_INFO.items():
+            for city in cities:
                 url = get_city_url(city)
-                task = asyncio.create_task(fetch_url_data(session, url, country, city))
+                task = loop.create_task(fetch_url_data(session, url, country, city))
                 tasks.append(task)
         weather = await asyncio.gather(*tasks)
-    delta = time.time() - start
-    print('DELTA!!!!!!!!!!!!', delta)
     return weather
 
 
