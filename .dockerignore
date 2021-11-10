@@ -3,3 +3,4 @@ venv
 Dockerfile
 .idea
 .git
+app/data/

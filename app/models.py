@@ -23,13 +23,9 @@ from sqlalchemy.ext.declarative import declarative_base
 
 load_dotenv()
 
-engine = create_engine("postgresql+pg8000://{}:{}@{}:{}/{}".format(
-    os.getenv('POSTGRES_USER'),
-    os.getenv('POSTGRES_PASSWORD'),
-    os.getenv('POSTGRES_HOST'),
-    os.getenv('POSTGRES_PORT'),
-    os.getenv('POSTGRES_DB'),
-))
+engine = create_engine(f"postgresql+pg8000://"
+                       f"{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@"
+                       f"{os.getenv('POSTGRES_HOST')}/{os.getenv('POSTGRES_DB')}")
 conn = engine.connect()
 session_sql = Session(bind=engine)
 base = declarative_base()

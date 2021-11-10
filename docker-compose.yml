@@ -16,12 +16,10 @@ services:
     restart: always
     image: postgres
     volumes:
-      - ./db:/var/lib/postgresql/data
-      - ./init-user-db.sh:/docker-entrypoint-initdb.d/init-user-db.sh
-    environment:
-      - DB_USERNAME=postgres
-      - POSTGRES_PASSWORD=postgres
-      - DB_HOST=localhost
+      - ./pgdata:/var/lib/postgresql/data
+    env_file: .env
     ports:
       - 5436:5432
+volumes:
+  pgdata:
 

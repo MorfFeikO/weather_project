@@ -27,7 +27,6 @@ from app.models import session_sql, City, Weather
 app = FastAPI()
 load_dotenv()
 
-
 URL_PATTERN = 'http://api.openweathermap.org/data/2.5/weather?q={}&units={}&appid={}'
 DEFAULT_INFO = {
     'Ukraine': ('Kyiv', 'Dnipro', 'Odesa', 'Lviv', 'Kharkiv'),
@@ -149,8 +148,11 @@ def save_weather_to_db(data):
 
 
 def save_data_to_file(data):
+    data_folder = "data"
+    if not os.path.exists(data_folder):
+        os.mkdir(data_folder)
     filename = f"{data.country}_{data.city}_{data.created_date}.txt"
-    with open('./data/' + filename, 'w', encoding='utf-8') as json_file:
+    with open(os.path.join(data_folder, filename), 'w', encoding='utf-8') as json_file:
         json.dump(data._asdict(), json_file)
 
 
