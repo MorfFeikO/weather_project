@@ -5,14 +5,14 @@ Synchron module for comparison with async
 import time
 import os
 import requests
-from main import DEFAULT_INFO, URL_PATTERN
+from app.main import DEFAULT_INFO, URL_PATTERN
 
 
 def find_weather():
     """Find weather in all cities synchron"""
     weather_list = []
-    for country in DEFAULT_INFO:
-        for city in DEFAULT_INFO[country]:
+    for country, cities in DEFAULT_INFO.items():
+        for city in cities:
             weather_list.append(single_city_weather(country, city))
     return weather_list
 

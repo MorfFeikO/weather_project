@@ -23,10 +23,12 @@ from sqlalchemy.ext.declarative import declarative_base
 
 load_dotenv()
 
-engine = create_engine("postgresql+pg8000://{}:{}@{}/weatherdb".format(
-    os.getenv('DB_USERNAME'),
-    os.getenv('DB_PASSWORD'),
-    os.getenv('DB_HOST_PORT'),
+engine = create_engine("postgresql+pg8000://{}:{}@{}:{}/{}".format(
+    os.getenv('POSTGRES_USER'),
+    os.getenv('POSTGRES_PASSWORD'),
+    os.getenv('POSTGRES_HOST'),
+    os.getenv('POSTGRES_PORT'),
+    os.getenv('POSTGRES_DB'),
 ))
 conn = engine.connect()
 session_sql = Session(bind=engine)

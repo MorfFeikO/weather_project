@@ -8,3 +8,20 @@ services:
       - .:/d_app
     ports:
       - 8004:8000
+    environment:
+      - OPEN_WEATHER_API_SECRET=f7dc8c9d6eb102c24be125e6917b4676
+    depends_on:
+      - db
+  db:
+    restart: always
+    image: postgres
+    volumes:
+      - ./db:/var/lib/postgresql/data
+      - ./init-user-db.sh:/docker-entrypoint-initdb.d/init-user-db.sh
+    environment:
+      - DB_USERNAME=postgres
+      - POSTGRES_PASSWORD=postgres
+      - DB_HOST=localhost
+    ports:
+      - 5436:5432
+
