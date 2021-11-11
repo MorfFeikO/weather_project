@@ -11,6 +11,7 @@ Functions:
 """
 import json
 import os
+import re
 import asyncio
 import collections
 import datetime
@@ -20,6 +21,7 @@ from aiohttp import ClientSession
 from fastapi import FastAPI
 from dotenv import load_dotenv
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import func
 
 from app.models import session_sql, City, Weather
 
@@ -43,6 +45,25 @@ WeatherData = collections.namedtuple("WeatherData", [
     "condition",
     "created_date",
 ])
+
+
+class CountryDB:
+    def __init__(self, name):
+        self.name = name
+        self.checks = []
+        self.first_check = None
+        self.last_check = None
+        self.count = None
+
+    def add_check_date(self, date):
+        if date not in self.checks:
+            self.checks.append(date)
+            self.first_check = max(self.checks).strftime('%d %b %Y').lower()
+            self.last_check = min(self.checks).strftime('%d %b %Y').lower()
+            self.count = len(self.checks)
+
+
+CountryFiles = collections.namedtuple("CountryFiles", ["country", "records", "last_check", "last_city"])
 
 
 def get_city_url(city: str, unit: str = 'metric'):
@@ -154,6 +175,78 @@ def save_data_to_file(data):
     filename = f"{data.country}_{data.city}_{data.created_date}.txt"
     with open(os.path.join(data_folder, filename), 'w', encoding='utf-8') as json_file:
         json.dump(data._asdict(), json_file)
+
+
+@app.get('/weather')
+def check_weather():
+    replace_with_rabbitmq()
+    f1 = fetch_data_from_db()
+    f2 = fetch_data_from_files()
+    return f1, f2
+
+
+@app.get('/from_db')
+def fetch_data_from_db():  # TODO: here are wrong expressions
+    data = session_sql.query(
+        City.country,
+        City.name,
+        Weather.temperature,
+        Weather.condition
+    ).join(City.weather).order_by(Weather.created_date.desc()).all()[:10]  # TODO: take out [:10] dependency
+    return data
+
+
+def fetch_data_from_files():
+    return ''
+
+###############################################################################
+
+
+@app.get('/statistic')
+def get_statistic():
+    db_data = get_statistic_from_db()
+    files_data = get_statistic_from_files()
+    return [db_data, files_data]
+
+
+def get_statistic_from_db():
+    data = session_sql.query(
+        City.country, func.count(City.country)
+    ).join(City.weather).group_by(City.country).order_by(City.country).all()
+
+    weather_check = {}
+    for country, records in data:
+        last_check = session_sql.query(
+            Weather.created_date
+        ).filter(City.country == country).join(City.weather).order_by(Weather.created_date.desc()).first()
+
+        last_city = session_sql.query(
+            City.name
+        ).filter(City.country == country).join(City.weather).order_by(Weather.id.desc()).first()
+        weather_check[country] = CountryFiles(
+            country, records, last_check[0].strftime('%H:%M %d %b %Y').lower(), last_city[0]
+        )
+    return weather_check
+
+
+def get_statistic_from_files():
+    data_folder = "data"
+    countries = {}
+    if os.path.exists(data_folder):
+        files = os.listdir(os.path.join(os.getcwd(), data_folder))
+        for filename in files:
+            country, date = filename_parser(filename)
+            if country not in countries:
+                countries[country] = CountryDB(country)
+            countries[country].add_check_date(date)
+    return countries
+
+
+def filename_parser(filename):
+    pattern = r'(\D*)_\D+_(\d{4})(\d{2})(\d{2})'
+    country, year, month, day = re.findall(pattern, filename)[0]
+    return country, datetime.date(int(year), int(month), int(day))
+###############################################################################
 
 
 @app.get('/ping')
