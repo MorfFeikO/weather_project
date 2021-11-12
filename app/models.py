@@ -1,74 +1,49 @@
-"""
-SQLAlchemy database models module.
-
-Objects:
-    session_sql:
-        Bound session object.
-
-Classes:
-    Weather:
-        Database weather model.
-    City:
-        Database city model.
-"""
-import os
-
-from dotenv import load_dotenv
-
-from sqlalchemy import create_engine
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, UniqueConstraint
-from sqlalchemy.orm import Session, relationship
-from sqlalchemy.ext.declarative import declarative_base
+import collections
 
 
-load_dotenv()
+WeatherData = collections.namedtuple("WeatherData", [
+    "country",
+    "city",
+    "temperature",
+    "condition",
+    "created_date",
+])
 
-engine = create_engine(f"postgresql+pg8000://"
-                       f"{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@"
-                       f"{os.getenv('POSTGRES_HOST')}/{os.getenv('POSTGRES_DB')}")
-conn = engine.connect()
-session_sql = Session(bind=engine)
-base = declarative_base()
-
-
-class Weather(base):
-    """
-    Database weather model.
-    ...
-    :param:
-        id: Integer, pk
-        city_id: ForeignKey("City.id")
-        temperature: Float
-        condition: String(100)
-        created_date: DateTime()
-    """
-    __tablename__ = "weather"
-
-    id = Column("id", Integer, primary_key=True)
-    city_id = Column("city_id", ForeignKey("city.id"))
-    temperature = Column("temperature", Float)
-    condition = Column("condition", String(100))
-    created_date = Column("created_date", DateTime())
+CountryDB = collections.namedtuple("CountryFiles", [
+    "country",
+    "records",
+    "last_check",
+    "last_city"
+])
 
 
-class City(base):
-    """
-    Database city model.
-    ...
-    :param:
-        id: Integer, pk
-        name: String(85)
-        country: String(56)
-        UniqueConstraint(name, country)
-    """
-    __tablename__ = "city"
+class CityFiles:
+    def __init__(self, name, country):
+        self.name = name
+        self.country = country
+        self.checks = []
+        self.last_check = None
+        self.filename = None
 
-    id = Column("id", Integer, primary_key=True)
-    name = Column("name", String(85))
-    country = Column("country", String(56))
-    weather = relationship("Weather", cascade="all,delete", backref="city")
+    def add_check_date(self, date):
+        self.checks.append(date)
+        self.last_check = max(self.checks).strftime('%Y%m%d')
 
-    __table_args__ = (UniqueConstraint("name", "country", name="location"), )
+    def get_last_check_filename(self):
+        return f'{self.country}_{self.name}_{self.last_check}.txt'
 
 
-base.metadata.create_all(engine)
+class CountryFiles:
+    def __init__(self, name):
+        self.name = name
+        self.checks = []
+        self.first_check = None
+        self.last_check = None
+        self.count = None
+
+    def add_check_date(self, date):
+        if date not in self.checks:
+            self.checks.append(date)
+            self.first_check = max(self.checks).strftime('%d %b %Y').lower()
+            self.last_check = min(self.checks).strftime('%d %b %Y').lower()
+            self.count = len(self.checks)
