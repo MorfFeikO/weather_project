@@ -6,8 +6,9 @@ import uvicorn
 
 from fastapi import FastAPI
 
-from app.services import get_statistic_from_db, get_statistic_from_files, \
-    fetch_data_from_files, fetch_data_from_db, replace_with_rabbitmq
+from app.services import replace_with_rabbitmq
+from app.db_requests import fetch_data_from_db, get_statistic_from_db
+from app.files_requests import fetch_data_from_files, get_statistic_from_files
 
 app = FastAPI()
 

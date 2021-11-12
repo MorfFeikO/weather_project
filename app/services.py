@@ -1,17 +1,13 @@
 import os
-import re
-import json
 import asyncio
 import datetime
 
-from sqlalchemy import func
 from aiohttp import ClientSession
 from dotenv import load_dotenv
-from sqlalchemy.exc import IntegrityError
 
-from app.db_models import session_sql, City, Weather
-from app.models import CountryDB, CountryFiles, CityFiles, WeatherData
-
+from app.models import WeatherData
+from app.files_requests import save_data_to_file
+from app.db_requests import save_data_to_db
 
 load_dotenv()
 
@@ -98,104 +94,3 @@ async def replace_with_rabbitmq():
             save_data_to_db(weather_data)
         else:
             save_data_to_file(weather_data)
-
-
-def save_data_to_db(data):
-    save_city_to_db(data)
-    save_weather_to_db(data)
-
-
-def save_city_to_db(data):
-    try:
-        session_sql.add(City(
-            name=data.city,
-            country=data.country,
-        ))
-        session_sql.commit()
-    except IntegrityError:
-        session_sql.rollback()
-
-
-def save_weather_to_db(data):
-    city = session_sql.query(City).filter(City.name == data.city).one()
-    session_sql.add(Weather(
-        city_id=city.id,
-        temperature=data.temperature,
-        condition=data.condition,
-        created_date=data.created_date,
-    ))
-    session_sql.commit()
-
-
-def save_data_to_file(data):
-    data_folder = "data"
-    if not os.path.exists(data_folder):
-        os.mkdir(data_folder)
-    filename = f"{data.country}_{data.city}_{data.created_date}.txt"
-    with open(os.path.join(data_folder, filename), 'w', encoding='utf-8') as json_file:
-        json.dump(data._asdict(), json_file)
-
-
-def get_statistic_from_db():
-    data = session_sql.query(
-        City.country, func.count(City.country)
-    ).join(City.weather).group_by(City.country).order_by(City.country).all()
-
-    weather_check = {}
-    for country, records in data:
-        last_check = session_sql.query(
-            Weather.created_date
-        ).filter(City.country == country).join(City.weather).order_by(Weather.created_date.desc()).first()
-
-        last_city = session_sql.query(
-            City.name
-        ).filter(City.country == country).join(City.weather).order_by(Weather.id.desc()).first()
-        weather_check[country] = CountryDB(
-            country, records, last_check[0].strftime('%H:%M %d %b %Y').lower(), last_city[0]
-        )
-    return weather_check
-
-
-def get_statistic_from_files():
-    data_folder = "data"
-    countries = {}
-    if os.path.exists(data_folder):
-        files = os.listdir(os.path.join(os.getcwd(), data_folder))
-        for filename in files:
-            country, _, date = filename_parser(filename)
-            if country not in countries:
-                countries[country] = CountryFiles(country)
-            countries[country].add_check_date(date)
-    return countries
-
-
-def filename_parser(filename):
-    pattern = r'(\D*)_(\D*)_(\d{4})(\d{2})(\d{2})'
-    country, city, year, month, day = re.findall(pattern, filename)[0]
-    return country, city, datetime.date(int(year), int(month), int(day))
-
-
-def fetch_data_from_db():
-    return ''
-
-
-def fetch_data_from_files():
-    data_folder = "data"
-    d = []
-    if os.path.exists(data_folder):
-        filepath = os.path.join(os.getcwd(), data_folder)
-        files = os.listdir(filepath)
-
-        cities = {}
-        for filename in files:
-            country, city, date = filename_parser(filename)
-            if city not in cities:
-                cities[city] = CityFiles(city, country)
-            cities[city].add_check_date(date)
-
-        for city_name, city_obj in cities.items():
-            filename = city_obj.get_last_check_filename()
-            with open(os.path.join(filepath, filename), 'r', encoding='utf-8') as json_file:
-                data = json.load(json_file)
-                d.append(data)
-    return d
