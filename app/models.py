@@ -6,14 +6,21 @@ WeatherData = collections.namedtuple("WeatherData", [
     "city",
     "temperature",
     "condition",
-    "created_date",
+    "created_date"
 ])
 
-CountryDB = collections.namedtuple("CountryFiles", [
+CountryDBStatistic = collections.namedtuple("CountryDBStatistic", [
     "country",
     "records",
     "last_check",
     "last_city"
+])
+
+FreshWeather = collections.namedtuple("FreshWeather", [
+    "country",
+    "city",
+    "temperature",
+    "condition"
 ])
 
 
