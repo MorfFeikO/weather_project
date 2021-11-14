@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %} Statistic {% endblock %}
+
+{% block body %}
+    <h2> Database statistic </h2>
+    <table>
+        <tr>
+            <th> Country </th>
+            <th> Weather records </th>
+            <th> Last weather check </th>
+            <th> Last city in a row </th>
+        </tr>
+        {% for country, weather in db_data.items() %}
+            <tr>
+                <th> {{ weather.country }} </th>
+                <th> {{ weather.records }} </th>
+                <th> {{ weather.last_check }} </th>
+                <th> {{ weather.last_city }} </th>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h2> Files statistic </h2>
+    <table>
+        <tr>
+            <th> Country </th>
+            <th> First weather check </th>
+            <th> Last weather check </th>
+            <th> Number of files </th>
+        </tr>
+        {% for country, weather in files_data.items() %}
+            <tr>
+                <th> {{ weather.name }} </th>
+                <th> {{ weather.first_check }} </th>
+                <th> {{ weather.last_check }} </th>
+                <th> {{ weather.count }} </th>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

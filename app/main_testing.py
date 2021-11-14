@@ -5,7 +5,7 @@ Synchron module for comparison with async
 import time
 import os
 import requests
-from app.main import DEFAULT_INFO, URL_PATTERN
+from app.services import DEFAULT_INFO, URL_PATTERN
 
 
 def find_weather():

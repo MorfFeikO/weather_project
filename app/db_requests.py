@@ -82,7 +82,9 @@ def get_statistic_from_db():
     for country, records in data:
         last_check = session_sql.query(
             Weather.created_date
-        ).filter(City.country == country).join(City.weather).order_by(Weather.created_date.desc()).first()
+        ).filter(City.country == country).join(City.weather).order_by(
+            Weather.created_date.desc()
+        ).first()
 
         last_city = session_sql.query(
             City.name
@@ -107,6 +109,8 @@ def get_data_from_db():
     for city in cities:
         country, city, temperature, condition = session_sql.query(
             City.country, City.name, Weather.temperature, Weather.condition
-        ).filter(City.name == city[0]).join(City.weather).order_by(Weather.created_date.desc()).first()
+        ).filter(City.name == city[0]).join(City.weather).order_by(
+            Weather.created_date.desc()
+        ).first()
         data.append(FreshWeather(country, city, temperature, condition))
     return data

@@ -46,11 +46,11 @@ class CountryFiles:
         self.checks = []
         self.first_check = None
         self.last_check = None
-        self.count = None
+        self.count = 0
 
     def add_check_date(self, date):
         if date not in self.checks:
             self.checks.append(date)
-            self.first_check = max(self.checks).strftime('%d %b %Y').lower()
-            self.last_check = min(self.checks).strftime('%d %b %Y').lower()
-            self.count = len(self.checks)
+        self.first_check = min(self.checks).strftime('%d %b %Y').lower()
+        self.last_check = max(self.checks).strftime('%d %b %Y').lower()
+        self.count += 1

@@ -60,20 +60,20 @@ def get_data_from_files():
              namedtuple objects.
     """
     data = []
-    for _, city_obj in get_city_objects():
+    for _, city_obj in get_city_objects().items():
         file = os.path.join(get_filepath(), city_obj.get_last_check_filename())
         with open(file, 'r', encoding='utf-8') as json_file:
-            data = json.load(json_file)
+            json_data = json.load(json_file)
             data.append(FreshWeather(
-                data['country'],
-                data['city'],
-                data['temperature'],
-                data['condition'])
+                json_data['country'],
+                json_data['city'],
+                json_data['temperature'],
+                json_data['condition'])
             )
     return data
 
 
-def get_statistic_from_files():  # TODO: need try\except get_files_list not exist folder error?
+def get_statistic_from_files():
     """
     Get statistic from files.
     ...

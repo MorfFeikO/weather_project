@@ -1,3 +1,4 @@
+"""Async weather request module"""
 import os
 import asyncio
 import datetime
@@ -67,9 +68,9 @@ async def fetch_url_data(session, url, country, city):
         city,
         resp['main']['temp'],
         resp['weather'][0]['description'],
-        (lambda: datetime.datetime.utcnow() if country in ('Ukraine', 'UK', ) else datetime.datetime.utcnow().strftime(
-            '%Y%m%d'))()
-         )
+        (lambda: datetime.datetime.utcnow() if country in (
+            'Ukraine', 'UK',
+        ) else datetime.datetime.utcnow().strftime('%Y%m%d'))())
 
 
 async def gather_weather():
@@ -87,6 +88,7 @@ async def gather_weather():
 
 
 async def replace_with_rabbitmq():
+    """Function which will be replaced with rabbitmq"""
     weather_data_list = await gather_weather()
 
     for weather_data in weather_data_list:
