@@ -1,7 +1,7 @@
 """
 fastapi Routes
 """
-
+import os
 import uvicorn
 
 from fastapi import FastAPI, Request
@@ -12,13 +12,18 @@ from app.db_requests import get_data_from_db, get_statistic_from_db
 from app.files_requests import get_data_from_files, get_statistic_from_files
 
 app = FastAPI()
-templates = Jinja2Templates(directory="templates")
+
+template_folder = os.path.join(os.path.dirname(os.getcwd()), 'templates')
+templates = Jinja2Templates(directory=template_folder)
 
 
 @app.get('/')
 def index(request: Request):
     args = {"request": request}
-    return templates.TemplateResponse("start_page.html", args)
+    return templates.TemplateResponse(
+        os.path.join(template_folder, "start_page.html"),
+        args
+    )
 
 
 @app.get('/weather')
