@@ -21,7 +21,7 @@ templates = Jinja2Templates(directory=template_folder)
 def index(request: Request):
     args = {"request": request}
     return templates.TemplateResponse(
-        os.path.join(template_folder, "start_page.html"),
+        "start_page.html",
         args
     )
 
