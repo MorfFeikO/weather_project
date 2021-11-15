@@ -2,25 +2,20 @@
 import os
 import asyncio
 import datetime
+import collections
 
+from lxml import etree, builder
 from aiohttp import ClientSession
 from dotenv import load_dotenv
 
-from app.models import WeatherData
-from app.files_requests import save_data_to_file
-from app.db_requests import save_data_to_db
+from app.producer import produce
+from app import DEFAULT_INFO
 
 load_dotenv()
 
+W = collections.namedtuple("W", ["country", "xml_data"])
 
-URL_PATTERN = 'http://api.openweathermap.org/data/2.5/weather?q={}&units={}&appid={}'
-DEFAULT_INFO = {
-    'Ukraine': ('Kyiv', 'Dnipro', 'Odesa', 'Lviv', 'Kharkiv'),
-    'UK': ('Aberdeen', 'Belfast', 'Glasgow', 'Liverpool', 'London'),
-    'USA': ('New York', 'Los Angeles', 'Chicago', 'San Diego', 'Dallas'),
-    'China': ('Hong Kong', 'Beijing', 'Shanghai', 'Guangzhou', 'Lanzhou'),
-    'Italy': ('Rome', 'Milan', 'Florence', 'Verona', 'Venice')
-}
+URL_PATTERN = 'http://api.openweathermap.org/data/2.5/weather?q={}&units={}&appid={}&mode=xml'
 
 
 def get_city_url(city: str, unit: str = 'metric'):
@@ -43,7 +38,42 @@ def get_city_url(city: str, unit: str = 'metric'):
     return URL_PATTERN.format(city, unit, api)
 
 
-async def fetch_url_data(session, url, country, city):
+def create_lxml_weather(country, city, temperature, condition, date):
+    E = builder.ElementMaker()
+    ROOT = E.current
+    COUNTRY = E.country
+    CITY = E.city
+    TEMPERATURE = E.temperature
+    CONDITION = E.condition
+    CREATED_DATE = E.created_date
+
+    tree = ROOT(
+        COUNTRY(country),
+        CITY(city),
+        TEMPERATURE(temperature),
+        CONDITION(condition),
+        CREATED_DATE(date)
+    )
+    return etree.tostring(tree)
+
+
+def get_data_from_response(data):
+    """Get needed data from xml response"""
+    root = etree.fromstring(data)
+    country, city, temperature, condition = '', '', '', ''
+    for child in root.iter():
+        if child.tag == 'city':
+            city = child.attrib['name']
+        elif child.tag == 'country':
+            country = child.text
+        elif child.tag == 'temperature':
+            temperature = child.attrib['value']
+        elif child.tag == 'weather':
+            condition = child.attrib['value']
+    return country, city, temperature, condition
+
+
+async def fetch_url_data(session, url, country):
     """
     [ASYNC] Get weather info from single city
     ...
@@ -52,25 +82,19 @@ async def fetch_url_data(session, url, country, city):
             async ClientSession obj
         url: str
             URL for api call
-        country: str
-            Name of country.
-        city: str
-            Name of city.
 
     :return:
-        WeatherData: namedtuple
-            Namedtuple object with fetched weather data.
+        W: namedtuple
+            W(country, xml_data) namedtuple object with fetched weather data.
     """
     async with session.get(url) as response:
-        resp = await response.json()
-    return WeatherData(
+        resp = await response.read()
+        _, city, temperature, condition = get_data_from_response(resp)
+        created_at = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
+    return W(
         country,
-        city,
-        resp['main']['temp'],
-        resp['weather'][0]['description'],
-        (lambda: datetime.datetime.utcnow() if country in (
-            'Ukraine', 'UK',
-        ) else datetime.datetime.utcnow().strftime('%Y%m%d'))())
+        create_lxml_weather(country, city, temperature, condition, created_at)
+    )
 
 
 async def gather_weather():
@@ -81,18 +105,14 @@ async def gather_weather():
         for country, cities in DEFAULT_INFO.items():
             for city in cities:
                 url = get_city_url(city)
-                task = loop.create_task(fetch_url_data(session, url, country, city))
+                task = loop.create_task(fetch_url_data(session, url, country))
                 tasks.append(task)
         weather = await asyncio.gather(*tasks)
     return weather
 
 
-async def replace_with_rabbitmq():
-    """Function which will be replaced with rabbitmq"""
+async def send_data_to_rabbitmq():
     weather_data_list = await gather_weather()
 
     for weather_data in weather_data_list:
-        if weather_data.country in ('Ukraine', 'UK', ):
-            save_data_to_db(weather_data)
-        else:
-            save_data_to_file(weather_data)
+        produce(weather_data)

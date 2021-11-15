@@ -15,6 +15,7 @@ import os
 import re
 import json
 import datetime
+import xmltodict
 
 from app.models import CityFiles, CountryFiles, FreshWeather
 
@@ -101,16 +102,21 @@ def save_data_to_file(data):
     filepath = get_filepath()
     if not os.path.exists(filepath):
         os.mkdir(filepath)
-    filename = f"{data.country}_{data.city}_{data.created_date}.txt"
+    country, city, created_date, data = data_to_json(data)
+    filename = f"{country}_{city}_{created_date}.txt"
     with open(os.path.join(filepath, filename), 'w', encoding='utf-8') as json_file:
-        json.dump(data_to_json(data), json_file)
+        json.dump(data, json_file)
 
 
 def data_to_json(data):
     """Covert data to dict with fields: country, city, temperature, condition."""
-    return {
-        "country": data.country,
-        "city": data.city,
-        "temperature": data.temperature,
-        "condition": data.condition,
-    }
+    dict_data = xmltodict.parse(data)
+    for _, value in dict_data.items():
+        country = value['country']
+        city = value['city']
+        created_date = datetime.datetime.strptime(
+            value['created_date'],
+            "%Y-%m-%d %H:%M:%S.%f"
+        ).strftime('%Y%m%d')
+        del value['created_date']
+        return country, city, created_date, value

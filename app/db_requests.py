@@ -11,6 +11,8 @@ Functions:
     get_statistic_from_db()
         Get statistic from database.
 """
+import xmltodict
+
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 
@@ -28,8 +30,8 @@ def save_city_to_db(data):
     """
     try:
         session_sql.add(City(
-            name=data.city,
-            country=data.country,
+            name=data['city'],
+            country=data['country'],
         ))
         session_sql.commit()
     except IntegrityError:
@@ -44,12 +46,12 @@ def save_weather_to_db(data):
         data: namedtuple
             WeatherData(country, city, temperature, condition, created_date)
     """
-    city = session_sql.query(City).filter(City.name == data.city).one()
+    city = session_sql.query(City).filter(City.name == data['city']).one()
     session_sql.add(Weather(
         city_id=city.id,
-        temperature=data.temperature,
-        condition=data.condition,
-        created_date=data.created_date,
+        temperature=data['temperature'],
+        condition=data['condition'],
+        created_date=data['created_date'],
     ))
     session_sql.commit()
 
@@ -61,8 +63,15 @@ def save_data_to_db(data):
     :arg:
         data: namedtuple
             WeatherData(country, city, temperature, condition, created_date)"""
+    data = transform_data(data)
     save_city_to_db(data)
     save_weather_to_db(data)
+
+
+def transform_data(data):
+    dict_data = xmltodict.parse(data)
+    for _, value in dict_data.items():
+        return value
 
 
 def get_statistic_from_db():

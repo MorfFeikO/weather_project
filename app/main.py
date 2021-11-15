@@ -1,20 +1,23 @@
 """
 fastapi Routes
 """
-import os
 import uvicorn
 
+from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 
-from app.services import replace_with_rabbitmq
+from app.services import send_data_to_rabbitmq
 from app.db_requests import get_data_from_db, get_statistic_from_db
 from app.files_requests import get_data_from_files, get_statistic_from_files
 
 app = FastAPI()
 
-template_folder = os.path.join(os.path.dirname(os.getcwd()), 'templates')
-templates = Jinja2Templates(directory=template_folder)
+
+BASE_DIR = Path(__file__).parent.parent
+template_folder = BASE_DIR / 'templates'
+
+templates = Jinja2Templates(directory=str(template_folder))
 
 
 @app.get('/')
@@ -27,8 +30,8 @@ def index(request: Request):
 
 
 @app.get('/weather')
-def check_weather(request: Request):  # TODO: try\except if smth wrong
-    replace_with_rabbitmq()
+async def check_weather(request: Request):  # TODO: try\except if smth wrong
+    await send_data_to_rabbitmq()
     data = get_data_from_db()
     data.extend(get_data_from_files())
     data.sort(key=lambda x: x.country)
