@@ -1,3 +1,7 @@
+from dotenv import load_dotenv
+
+load_dotenv()
+
 DEFAULT_INFO = {
     'Ukraine': ('Kyiv', 'Dnipro', 'Odesa', 'Lviv', 'Kharkiv'),
     'UK': ('Aberdeen', 'Belfast', 'Glasgow', 'Liverpool', 'London'),

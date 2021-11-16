@@ -17,7 +17,12 @@ import json
 import datetime
 import xmltodict
 
+from pathlib import Path
+
 from app.models import CityFiles, CountryFiles, FreshWeather
+
+
+BASEDIR = Path(__file__).parent
 
 
 def get_files_list():
@@ -30,7 +35,7 @@ def get_files_list():
 
 def get_filepath(data_folder="data"):
     """Get weather data files path"""
-    return os.path.join(os.getcwd(), data_folder)
+    return os.path.join(BASEDIR, data_folder)
 
 
 def filename_parser(filename):

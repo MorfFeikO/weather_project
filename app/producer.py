@@ -1,11 +1,12 @@
 import pika
+import os
 
 from app import DEFAULT_INFO
 
 
 def produce(data):
     with pika.BlockingConnection(
-        pika.ConnectionParameters(host='localhost', port=5672)
+        pika.ConnectionParameters(host=os.getenv('RABBITMQ_HOST'))
     ) as connection:
         channel = connection.channel()
         for country in DEFAULT_INFO:

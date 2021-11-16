@@ -10,8 +10,11 @@ services:
       - 8004:8000
     environment:
       - OPEN_WEATHER_API_SECRET=f7dc8c9d6eb102c24be125e6917b4676
+    networks:
+      - network
     depends_on:
       - db
+
   db:
     restart: always
     image: postgres
@@ -20,6 +23,26 @@ services:
     env_file: .env
     ports:
       - 5436:5432
+    networks:
+      - network
+
+  rabbit-mq:
+    image: rabbitmq:3-management
+    restart: always
+    ports:
+      - 5672:5672
+      - 15672:15672
+    networks:
+      - network
+
+  consumer-1:
+    build: consumer
+    restart: always
+    env_file: .env
+    networks:
+      - network
 volumes:
   pgdata:
 
+networks:
+  network:

@@ -1,14 +1,6 @@
 import collections
 
 
-WeatherData = collections.namedtuple("WeatherData", [
-    "country",
-    "city",
-    "temperature",
-    "condition",
-    "created_date"
-])
-
 CountryDBStatistic = collections.namedtuple("CountryDBStatistic", [
     "country",
     "records",
