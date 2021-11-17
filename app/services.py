@@ -10,10 +10,10 @@ from dotenv import load_dotenv
 
 from app.producer import produce
 from app import DEFAULT_INFO
+from app.async_prod import produce as pr
+from app.models import W
 
 load_dotenv()
-
-W = collections.namedtuple("W", ["country", "xml_data"])
 
 URL_PATTERN = 'http://api.openweathermap.org/data/2.5/weather?q={}&units={}&appid={}&mode=xml'
 
@@ -111,8 +111,23 @@ async def gather_weather():
     return weather
 
 
-async def send_data_to_rabbitmq():
+async def send_data_to_rabbitmq2():
     weather_data_list = await gather_weather()
 
     for weather_data in weather_data_list:
         produce(weather_data)
+
+
+async def send_data_to_rabbitmq():
+    weather_data_list = await gather_weather()
+
+    loop = asyncio.get_event_loop()
+    tasks = []
+    for weather_data in weather_data_list:
+        task = loop.create_task(pr(
+            loop,
+            message_body=weather_data.xml_data,
+            queue_name=weather_data.country
+        ))
+        tasks.append(task)
+    await asyncio.gather(*tasks)

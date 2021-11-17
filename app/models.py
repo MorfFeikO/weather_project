@@ -1,6 +1,8 @@
 import collections
 
 
+W = collections.namedtuple("W", ["country", "xml_data"])
+
 CountryDBStatistic = collections.namedtuple("CountryDBStatistic", [
     "country",
     "records",
