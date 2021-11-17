@@ -31,7 +31,7 @@ def index(request: Request):
 
 @app.get('/weather')
 async def check_weather(request: Request):  # TODO: try\except if smth wrong
-    await send_data_to_rabbitmq()
+    await send_data_to_rabbitmq()  # TODO: here code may run through.
     data = get_data_from_db()
     data.extend(get_data_from_files())
     data.sort(key=lambda x: x.country)

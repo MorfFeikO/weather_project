@@ -35,12 +35,49 @@ services:
     networks:
       - network
 
-  consumer-1:
-    build: consumer
+  consumer-ukraine:
+    build: .
+    command: python app/async_cons.py 'Ukraine'
     restart: always
     env_file: .env
     networks:
       - network
+  consumer-uk:
+    build: .
+    command: python app/async_cons.py 'UK'
+    restart: always
+    env_file: .env
+    networks:
+      - network
+  consumer-italy:
+    build: .
+    command: python app/async_cons.py 'Italy'
+    restart: always
+    env_file: .env
+    networks:
+      - network
+  consumer-china:
+    build: .
+    command: python app/async_cons.py 'China'
+    restart: always
+    env_file: .env
+    networks:
+      - network
+  consumer-usa:
+    build: .
+    command: python app/async_cons.py 'USA'
+    restart: always
+    env_file: .env
+    networks:
+      - network
+  consumer-other:
+    build: .
+    command: python app/async_cons.py 'other'
+    restart: always
+    env_file: .env
+    networks:
+      - network
+
 volumes:
   pgdata:
 

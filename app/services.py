@@ -2,13 +2,11 @@
 import os
 import asyncio
 import datetime
-import collections
 
 from lxml import etree, builder
 from aiohttp import ClientSession
 from dotenv import load_dotenv
 
-from app.producer import produce
 from app import DEFAULT_INFO
 from app.async_prod import produce as pr
 from app.models import W
@@ -109,13 +107,6 @@ async def gather_weather():
                 tasks.append(task)
         weather = await asyncio.gather(*tasks)
     return weather
-
-
-async def send_data_to_rabbitmq2():
-    weather_data_list = await gather_weather()
-
-    for weather_data in weather_data_list:
-        produce(weather_data)
 
 
 async def send_data_to_rabbitmq():
