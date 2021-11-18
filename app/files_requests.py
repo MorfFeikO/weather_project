@@ -127,3 +127,8 @@ def data_to_json(data):
         ).strftime('%Y%m%d')
         del value['created_date']
         return country, city, created_date, value
+
+
+
+
+
