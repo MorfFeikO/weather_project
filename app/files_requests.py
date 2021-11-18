@@ -22,7 +22,7 @@ from pathlib import Path
 from app.models import CityFiles, CountryFiles, FreshWeather
 
 
-BASEDIR = Path(__file__).parent
+BASEDIR = Path(__file__).parent.parent
 
 
 def get_files_list():
@@ -105,7 +105,9 @@ def save_data_to_file(data):
             WeatherData(country, city, temperature, condition, created_date)
     """
     filepath = get_filepath()
+    print('filepath', filepath)
     if not os.path.exists(filepath):
+        print('filepath not exists')
         os.mkdir(filepath)
     country, city, created_date, data = data_to_json(data)
     filename = f"{country}_{city}_{created_date}.txt"

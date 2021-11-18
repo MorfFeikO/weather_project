@@ -5,7 +5,6 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
-
 from aio_pika import connect, IncomingMessage, ExchangeType
 
 from app.db_requests import save_data_to_db
@@ -21,6 +20,7 @@ async def on_message_db(message: IncomingMessage):
 
 async def on_message_txt(message: IncomingMessage):
     async with message.process():
+        print('!!!!!!!!!!!!!!!!!!!!!!!!GOING TO PRINT IN THE FILE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
         save_data_to_file(message.body)
 
 
@@ -30,13 +30,29 @@ async def on_message_txt(message: IncomingMessage):
 #        CONSUMER_LIST[country](message.body)
 
 
+async def connection_wait(host, loop, state=False):
+    while not state:
+        try:
+            connection = await connect(host=host, loop=loop)
+            state = True
+        except ConnectionError:
+            state = False
+    return connection
+
+
 async def main(loop,
                queue_name,
                callback
                ):
     # Perform connection
-    connection = await connect(host='rabbitmq', loop=loop)
-    # connection = await connect(loop=loop)
+    """
+    try:
+        connection = await connect(host='rabbitmq', loop=loop, connection_attempts=5, retry_delay=5)
+    except ConnectionError:
+        await asyncio.sleep(10)
+        connection = await connect(host='rabbitmq', loop=loop, connection_attempts=5, retry_delay=5)
+    """
+    connection = await connection_wait(host='rabbitmq', loop=loop)
 
     # Creating a channel
     channel = await connection.channel()
@@ -61,7 +77,6 @@ def consumer_run(queue_name):
     # there are workers for 5 countries in the list.
     # What about others if they will be added?
     # Additional worker for other countries is!
-
     if queue_name not in CONSUMER_LIST:
         queue_name = 'other'
 
@@ -84,7 +99,7 @@ CONSUMER_LIST = {
 
 
 if __name__ == '__main__':
-    # typer.run(consumer_run)
+    typer.run(consumer_run)
     # print('Ukraine listening')
     # consumer_run('Ukraine')
     # print('UK listening')
@@ -93,5 +108,5 @@ if __name__ == '__main__':
     # consumer_run('Italy')
     # print('USA listening')
     # consumer_run('USA')
-    print('China listening')
-    consumer_run('China')
+    # print('China listening')
+    # consumer_run('China')

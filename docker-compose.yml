@@ -10,10 +10,10 @@ services:
       - 8004:8000
     environment:
       - OPEN_WEATHER_API_SECRET=f7dc8c9d6eb102c24be125e6917b4676
-    networks:
-      - network
+
     depends_on:
       - db
+      - rabbitmq
 
   db:
     restart: always
@@ -23,8 +23,7 @@ services:
     env_file: .env
     ports:
       - 5436:5432
-    networks:
-      - network
+
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -32,22 +31,82 @@ services:
     ports:
       - 5672:5672
       - 15672:15672
-    networks:
-      - network
 
-  consumer:
+
+  consumer-ukraine:
     build: .
     command: python app/async_cons.py 'Ukraine'
+    restart: always
     depends_on:
       - rabbitmq
-    networks:
-      - network
+      - db
+      - web
+    env_file: .env
     ports:
       - 5673:5673
+
+  consumer-uk:
+    build: .
+    command: python app/async_cons.py 'UK'
+    restart: always
+    depends_on:
+      - rabbitmq
+      - db
+      - web
+    env_file: .env
+    ports:
+      - 5674:5674
+
+  consumer-italy:
+    build: .
+    command: python app/async_cons.py 'Italy'
+    restart: always
+    depends_on:
+      - rabbitmq
+      - db
+      - web
+    env_file: .env
+    ports:
+      - 5675:5675
+
+  consumer-usa:
+    build: .
+    command: python app/async_cons.py 'USA'
+    restart: always
+    depends_on:
+      - rabbitmq
+      - db
+      - web
+    env_file: .env
+    ports:
+      - 5676:5676
+
+  consumer-china:
+    build: .
+    command: python app/async_cons.py 'China'
+    restart: always
+    depends_on:
+      - rabbitmq
+      - db
+      - web
+    env_file: .env
+    ports:
+      - 5677:5677
+
+  consumer-other:
+    build: .
+    command: python app/async_cons.py 'other'
+    restart: always
+    depends_on:
+      - rabbitmq
+      - db
+      - web
+    env_file: .env
+    ports:
+      - 5678:5678
+
 
 volumes:
   pgdata:
 
-networks:
-  network:
-    driver: bridge
+
