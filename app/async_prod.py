@@ -5,7 +5,8 @@ from app.models import W
 
 async def produce(loop, message_body, queue_name):
     # Perform connection
-    connection = await connect('amqp://guest:guest@localhost', loop=loop)
+    connection = await connect(host='rabbitmq', loop=loop)
+    # connection = await connect(loop=loop)
 
     # Creating a channel
     channel = await connection.channel()

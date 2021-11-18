@@ -109,7 +109,7 @@ async def gather_weather():
     return weather
 
 
-async def send_data_to_rabbitmq():
+async def send_data_to_rabbitmq2():
     weather_data_list = await gather_weather()
 
     loop = asyncio.get_event_loop()
@@ -122,3 +122,15 @@ async def send_data_to_rabbitmq():
         ))
         tasks.append(task)
     await asyncio.gather(*tasks)
+
+
+async def send_data_to_rabbitmq():
+    weather_data_list = await gather_weather()
+
+    loop = asyncio.get_event_loop()
+    for weather_data in weather_data_list:
+        await pr(
+            loop,
+            message_body=weather_data.xml_data,
+            queue_name=weather_data.country
+        )

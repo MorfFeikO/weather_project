@@ -26,7 +26,7 @@ services:
     networks:
       - network
 
-  rabbit-mq:
+  rabbitmq:
     image: rabbitmq:3-management
     restart: always
     ports:
@@ -35,51 +35,19 @@ services:
     networks:
       - network
 
-  consumer-ukraine:
+  consumer:
     build: .
     command: python app/async_cons.py 'Ukraine'
-    restart: always
-    env_file: .env
+    depends_on:
+      - rabbitmq
     networks:
       - network
-  consumer-uk:
-    build: .
-    command: python app/async_cons.py 'UK'
-    restart: always
-    env_file: .env
-    networks:
-      - network
-  consumer-italy:
-    build: .
-    command: python app/async_cons.py 'Italy'
-    restart: always
-    env_file: .env
-    networks:
-      - network
-  consumer-china:
-    build: .
-    command: python app/async_cons.py 'China'
-    restart: always
-    env_file: .env
-    networks:
-      - network
-  consumer-usa:
-    build: .
-    command: python app/async_cons.py 'USA'
-    restart: always
-    env_file: .env
-    networks:
-      - network
-  consumer-other:
-    build: .
-    command: python app/async_cons.py 'other'
-    restart: always
-    env_file: .env
-    networks:
-      - network
+    ports:
+      - 5673:5673
 
 volumes:
   pgdata:
 
 networks:
   network:
+    driver: bridge
