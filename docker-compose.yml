@@ -5,7 +5,7 @@ services:
     build: .
     command: uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 8000
     volumes:
-      - .:/d_app
+      - .:/home/myapp/weather_project/app_data
     ports:
       - 8004:8000
     environment:
@@ -37,6 +37,8 @@ services:
     build: .
     command: python app/async_cons.py 'Ukraine'
     restart: always
+    volumes:
+      - .:/home/myapp/weather_project/app_data
     depends_on:
       - rabbitmq
       - db
@@ -49,6 +51,8 @@ services:
     build: .
     command: python app/async_cons.py 'UK'
     restart: always
+    volumes:
+      - .:/home/myapp/weather_project/app_data
     depends_on:
       - rabbitmq
       - db
@@ -61,6 +65,8 @@ services:
     build: .
     command: python app/async_cons.py 'Italy'
     restart: always
+    volumes:
+      - .:/home/myapp/weather_project/app_data
     depends_on:
       - rabbitmq
       - db
@@ -73,6 +79,8 @@ services:
     build: .
     command: python app/async_cons.py 'USA'
     restart: always
+    volumes:
+      - .:/home/myapp/weather_project/app_data
     depends_on:
       - rabbitmq
       - db
@@ -85,6 +93,8 @@ services:
     build: .
     command: python app/async_cons.py 'China'
     restart: always
+    volumes:
+      - .:/home/myapp/weather_project/app_data
     depends_on:
       - rabbitmq
       - db
@@ -97,6 +107,8 @@ services:
     build: .
     command: python app/async_cons.py 'other'
     restart: always
+    volumes:
+      - .:/home/myapp/weather_project/app_data
     depends_on:
       - rabbitmq
       - db

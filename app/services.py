@@ -2,7 +2,7 @@
 import os
 import asyncio
 import datetime
-
+import time
 from lxml import etree, builder
 from aiohttp import ClientSession
 from dotenv import load_dotenv
@@ -125,6 +125,7 @@ async def send_data_to_rabbitmq2():
 
 
 async def send_data_to_rabbitmq():
+    start = time.time()
     weather_data_list = await gather_weather()
 
     loop = asyncio.get_event_loop()
@@ -134,3 +135,19 @@ async def send_data_to_rabbitmq():
             message_body=weather_data.xml_data,
             queue_name=weather_data.country
         )
+    print('!!!!!!!!!!!!!!!!!SENDING TO SAVE TIME I accomplished?', time.time() - start)
+
+
+async def send_data_to_rabbitmq_old():
+    start = time.time()
+    weather_data_list = await gather_weather()
+
+    loop = asyncio.get_event_loop()
+    for weather_data in weather_data_list:
+        await pr(
+            loop,
+            message_body=weather_data.xml_data,
+            queue_name=weather_data.country
+        )
+    print('!!!!!!!!!!!!!!!!!SENDING TO SAVE TIME I accomplished?', time.time() - start)
+

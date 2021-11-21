@@ -1,51 +1,41 @@
 """
-Operations with weather data files module.
+Operations with weather data files.
 ...
 Functions:
     save_data_to_file(data)
-        Save weather data to file.
+        Save weather data in file on s3 AWS bucket.
 
     get_data_from_files()
-        Get fresh weather data from files.
+        Get fresh weather data from files on s3 AWS bucket.
 
     get_statistic_from_data()
-        Get statistic from files.
+        Get statistic from files on s3 AWS bucket.
 """
-import os
 import re
 import json
 import datetime
 import xmltodict
-
-from pathlib import Path
+import asyncio
+import time
 
 from app.models import CityFiles, CountryFiles, FreshWeather
-
-
-BASEDIR = Path(__file__).parent.parent
-
-
-def get_files_list():
-    """Get list of files in a weather data path"""
-    filepath = get_filepath()
-    if os.path.exists(filepath):
-        return os.listdir(filepath)
-    return []
-
-
-def get_filepath(data_folder="data"):
-    """Get weather data files path"""
-    return os.path.join(BASEDIR, data_folder)
+from app.files_storage import upload_data_to_file, get_files_list, download_data_from_file, \
+    download_data_from_file_async, get_files_list_async, get_bucket_list_async
 
 
 def filename_parser(filename):
-    """Parse data from filename"""
+    """Parse data from filename.
+    ...
+    :param filename: str
+        Name of file with weather data.
+    :return tuple(country, city, datetime.date())
+    """
     pattern = r'(\D*)_(\D*)_(\d{4})(\d{2})(\d{2})'
     country, city, year, month, day = re.findall(pattern, filename)[0]
     return country, city, datetime.date(int(year), int(month), int(day))
 
 
-def get_city_objects():
+def get_city_data():
     """Get dictionary of unique CityFiles objects"""
     cities = {}
     for filename in get_files_list():
@@ -56,36 +46,32 @@ def get_city_objects():
     return cities
 
 
-def get_data_from_files():
+def get_data_from_files():  # TODO: if empty?
     """
-    Get fresh weather data from files.
+    Get fresh weather data from files on s3 AWS bucket.
     ...
-    :return:
-        data: list
-            List of FreshWeather(country, city, temperature, condition)
-             namedtuple objects.
+    :return data: list
+        List of FreshWeather(country, city, temperature, condition)
+        namedtuple objects.
     """
     data = []
-    for _, city_obj in get_city_objects().items():
-        file = os.path.join(get_filepath(), city_obj.get_last_check_filename())
-        with open(file, 'r', encoding='utf-8') as json_file:
-            json_data = json.load(json_file)
-            data.append(FreshWeather(
-                json_data['country'],
-                json_data['city'],
-                json_data['temperature'],
-                json_data['condition'])
-            )
+    for _, city_obj in get_city_data().items():
+        filename = city_obj.get_last_check_filename()
+        content = download_data_from_file(filename)
+        data.append(FreshWeather(
+                content['country'],
+                content['city'],
+                content['temperature'],
+                content['condition']))
     return data
 
 
-def get_statistic_from_files():
+def get_statistic_from_files():  # TODO: if empty?
     """
-    Get statistic from files.
+    Get statistic from files on s3 AWS bucket.
     ...
-    :return:
-        countries: dict
-            Dictionary of unique CountryFiles objects.
+    :return countries: dict
+        Dictionary of unique CountryFiles objects.
     """
     countries = {}
     for filename in get_files_list():
@@ -98,26 +84,24 @@ def get_statistic_from_files():
 
 def save_data_to_file(data):
     """
-    Save weather data to file
+    Save weather data in file on s3 AWS bucket.
     ...
-    :arg:
-        data: namedtuple
-            WeatherData(country, city, temperature, condition, created_date)
+    :param data: namedtuple
+        WeatherData(country, city, temperature, condition, created_date)
     """
-    filepath = get_filepath()
-    print('filepath', filepath)
-    if not os.path.exists(filepath):
-        print('filepath not exists')
-        os.mkdir(filepath)
-    country, city, created_date, data = data_to_json(data)
+    country, city, created_date, data = xml_to_dict(data)
     filename = f"{country}_{city}_{created_date}.txt"
-    with open(os.path.join(filepath, filename), 'w', encoding='utf-8') as json_file:
-        json.dump(data, json_file)
+    content = json.dumps(data)
+    upload_data_to_file(filename, content)
 
 
-def data_to_json(data):
-    """Covert data to dict with fields: country, city, temperature, condition."""
-    dict_data = xmltodict.parse(data)
+def xml_to_dict(data):
+    """Covert data from xml to dict.
+    ...
+    :param data:
+        XML string.
+    """
+    dict_data = xmltodict.parse(data)  # TODO: review type of data
     for _, value in dict_data.items():
         country = value['country']
         city = value['city']
@@ -129,6 +113,39 @@ def data_to_json(data):
         return country, city, created_date, value
 
 
+###########################################################################
 
 
+async def get_city_data_async():
+    """Get dictionary of unique CityFiles objects"""
+    cities = {}
+    files_list = await get_files_list_async()
+    for filename in files_list:
+        country, city, date = filename_parser(filename)
+        if city not in cities:
+            cities[city] = CityFiles(city, country)
+        cities[city].add_check_date(date)
+    return cities
 
+
+async def get_data_from_files_async():  # TODO: if empty?
+    """
+    Get fresh weather data from files on s3 AWS bucket.
+    ...
+    :return data: list
+        List of FreshWeather(country, city, temperature, condition)
+        namedtuple objects.
+    """
+    st = time.time()
+    tasks = []
+    loop = asyncio.get_event_loop()
+    city_data = await get_city_data_async()
+    bucket_list = await get_bucket_list_async()
+    for _, city_obj in city_data.items():
+        filename = city_obj.get_last_check_filename()
+        task = loop.create_task(download_data_from_file_async(filename, bucket_list))
+        tasks.append(task)
+    data = await asyncio.gather(*tasks)
+
+    print('get data from files time', time.time() - st)
+    return data

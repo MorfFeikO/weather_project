@@ -1,6 +1,5 @@
 import asyncio
 import typer
-import os
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
@@ -9,6 +8,7 @@ from aio_pika import connect, IncomingMessage, ExchangeType
 
 from app.db_requests import save_data_to_db
 from app.files_requests import save_data_to_file
+from app.files_requests_old import save_data_to_file2 as sf
 # from db_requests import save_data_to_db
 # from files_requests import save_data_to_file
 
@@ -20,8 +20,8 @@ async def on_message_db(message: IncomingMessage):
 
 async def on_message_txt(message: IncomingMessage):
     async with message.process():
-        print('!!!!!!!!!!!!!!!!!!!!!!!!GOING TO PRINT IN THE FILE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-        save_data_to_file(message.body)
+        # save_data_to_file(message.body)
+        sf(message.body)  # changed here to old version
 
 
 # async def on_message(message: IncomingMessage):

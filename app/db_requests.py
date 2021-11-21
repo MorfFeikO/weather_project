@@ -123,3 +123,27 @@ def get_data_from_db():
         ).first()
         data.append(FreshWeather(country, city, temperature, condition))
     return data
+
+
+#######################################
+
+
+async def get_data_from_db_async():
+    """
+    Get fresh weather data from database.
+    ...
+    :return:
+        data: list
+            List of FreshWeather(country, city, temperature, condition)
+             namedtuple objects.
+    """
+    data = []
+    cities = session_sql.query(func.distinct(City.name)).all()
+    for city in cities:
+        country, city, temperature, condition = session_sql.query(
+            City.country, City.name, Weather.temperature, Weather.condition
+        ).filter(City.name == city[0]).join(City.weather).order_by(
+            Weather.created_date.desc()
+        ).first()
+        data.append(FreshWeather(country, city, temperature, condition))
+    return data

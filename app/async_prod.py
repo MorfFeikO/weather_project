@@ -2,9 +2,20 @@ import asyncio
 from aio_pika import connect, Message, DeliveryMode, ExchangeType
 
 
+async def connection_wait(host, loop, state=False):
+    while not state:
+        try:
+            connection = await connect(host=host, loop=loop)
+            state = True
+        except ConnectionError:
+            state = False
+    return connection
+
+
 async def produce(loop, message_body, queue_name):
     # Perform connection
-    connection = await connect(host='rabbitmq', loop=loop)
+    # connection = await connect(host='rabbitmq', loop=loop)
+    connection = await connection_wait(host='rabbitmq', loop=loop)
     # connection = await connect(loop=loop)
 
     # Creating a channel
