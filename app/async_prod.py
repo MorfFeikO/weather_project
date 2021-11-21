@@ -1,22 +1,26 @@
-import asyncio
-from aio_pika import connect, Message, DeliveryMode, ExchangeType
+"""Async rabbitmq calls producer.
+...
+Functions:
+    produce(loop, message_body, queue_name)
+        Connect producer to rabbitmq and deliver message.
+"""
+from aio_pika import Message, DeliveryMode, ExchangeType
 
-
-async def connection_wait(host, loop, state=False):
-    while not state:
-        try:
-            connection = await connect(host=host, loop=loop)
-            state = True
-        except ConnectionError:
-            state = False
-    return connection
+from app.rabbitmq_reconnect import connection_wait
 
 
 async def produce(loop, message_body, queue_name):
+    """Connect producer to rabbitmq and deliver message.
+    ...
+    :param loop:
+        Running event loop.
+    :param message_body: bytes
+        Weather data (xml format in bytes string).
+    :param queue_name: str
+        Name of the queue (name of the country).
+    """
     # Perform connection
-    # connection = await connect(host='rabbitmq', loop=loop)
     connection = await connection_wait(host='rabbitmq', loop=loop)
-    # connection = await connect(loop=loop)
 
     # Creating a channel
     channel = await connection.channel()
@@ -34,10 +38,3 @@ async def produce(loop, message_body, queue_name):
     )
 
     await connection.close()
-
-
-async def main(data):
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(
-        produce(loop, message_body=data.xml_data, queue_name=data.country)
-    )

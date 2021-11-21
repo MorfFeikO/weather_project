@@ -1,15 +1,19 @@
-"""Async weather request module"""
+"""Async weather request module.
+...
+Functions:
+    send_data_to_rabbitmq()
+        Send data to rabbitmq.
+"""
 import os
 import asyncio
 import datetime
-import time
 from lxml import etree, builder
 from aiohttp import ClientSession
 from dotenv import load_dotenv
 
 from app import DEFAULT_INFO
 from app.async_prod import produce as pr
-from app.models import W
+from app.models import WeatherXML
 
 load_dotenv()
 
@@ -17,46 +21,49 @@ URL_PATTERN = 'http://api.openweathermap.org/data/2.5/weather?q={}&units={}&appi
 
 
 def get_city_url(city: str, unit: str = 'metric'):
-    """
-    Get single city url
+    """Get single city url.
     ...
-    :param:
-        city: str
-            Name of the city
-        unit: str
-            URL param to choose temperature's unit of measure
-            Default:  'metric' - for temperature in Celsius
-            Optional: 'imperial' - for temperature in Fahrenheit
-                      '' - for temperature in Kelvin
-    :return:
-        url : str
-            URL for api call to openweathermap.org
+    :param city: str
+        Name of the city
+    :param unit: str
+        URL param to choose temperature's unit of measure
+        Default:  'metric' - for temperature in Celsius
+        Optional: 'imperial' - for temperature in Fahrenheit
+                  '' - for temperature in Kelvin
+    :return url : str
+        URL for api call to openweathermap.org
     """
     api = os.getenv('OPEN_WEATHER_API_SECRET')
     return URL_PATTERN.format(city, unit, api)
 
 
 def create_lxml_weather(country, city, temperature, condition, date):
-    E = builder.ElementMaker()
-    ROOT = E.current
-    COUNTRY = E.country
-    CITY = E.city
-    TEMPERATURE = E.temperature
-    CONDITION = E.condition
-    CREATED_DATE = E.created_date
+    """Create XML data.
+    :return lxml tree
+    """
+    elem = builder.ElementMaker()
+    e_root = elem.current
+    e_country = elem.country
+    e_city = elem.city
+    e_temperature = elem.temperature
+    e_condition = elem.condition
+    e_created_date = elem.created_date
 
-    tree = ROOT(
-        COUNTRY(country),
-        CITY(city),
-        TEMPERATURE(temperature),
-        CONDITION(condition),
-        CREATED_DATE(date)
+    tree = e_root(
+        e_country(country),
+        e_city(city),
+        e_temperature(temperature),
+        e_condition(condition),
+        e_created_date(date)
     )
     return etree.tostring(tree)
 
 
 def get_data_from_response(data):
-    """Get needed data from xml response"""
+    """Get data from xml response.
+    ...
+    :return tuple(country, city, temperature, condition)
+    """
     root = etree.fromstring(data)
     country, city, temperature, condition = '', '', '', ''
     for child in root.iter():
@@ -72,31 +79,32 @@ def get_data_from_response(data):
 
 
 async def fetch_url_data(session, url, country):
-    """
-    [ASYNC] Get weather info from single city
+    """Get weather info from single city.
     ...
-    :param:
-        session: ClientSession()
-            async ClientSession obj
-        url: str
-            URL for api call
-
-    :return:
-        W: namedtuple
-            W(country, xml_data) namedtuple object with fetched weather data.
+    :param session: ClientSession()
+        async ClientSession obj
+    :param url: str
+        URL for api call
+    :param country: str
+        Name of country
+    :return WeatherXML: namedtuple
+        WeatherXML(country, xml_data) namedtuple object with fetched weather data.
     """
     async with session.get(url) as response:
         resp = await response.read()
         _, city, temperature, condition = get_data_from_response(resp)
         created_at = datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%f')
-    return W(
+    return WeatherXML(
         country,
         create_lxml_weather(country, city, temperature, condition, created_at)
     )
 
 
 async def gather_weather():
-    """Get route for all cities"""
+    """Get weather data for all requested cities cities.
+    :return weather: list
+        List of WeatherXML(country, xml_data) namedtuple objects.
+    """
     tasks = []
     async with ClientSession() as session:
         loop = asyncio.get_event_loop()
@@ -109,23 +117,8 @@ async def gather_weather():
     return weather
 
 
-async def send_data_to_rabbitmq2():
-    weather_data_list = await gather_weather()
-
-    loop = asyncio.get_event_loop()
-    tasks = []
-    for weather_data in weather_data_list:
-        task = loop.create_task(pr(
-            loop,
-            message_body=weather_data.xml_data,
-            queue_name=weather_data.country
-        ))
-        tasks.append(task)
-    await asyncio.gather(*tasks)
-
-
 async def send_data_to_rabbitmq():
-    start = time.time()
+    """Send data to rabbitmq."""
     weather_data_list = await gather_weather()
 
     loop = asyncio.get_event_loop()
@@ -135,19 +128,3 @@ async def send_data_to_rabbitmq():
             message_body=weather_data.xml_data,
             queue_name=weather_data.country
         )
-    print('!!!!!!!!!!!!!!!!!SENDING TO SAVE TIME I accomplished?', time.time() - start)
-
-
-async def send_data_to_rabbitmq_old():
-    start = time.time()
-    weather_data_list = await gather_weather()
-
-    loop = asyncio.get_event_loop()
-    for weather_data in weather_data_list:
-        await pr(
-            loop,
-            message_body=weather_data.xml_data,
-            queue_name=weather_data.country
-        )
-    print('!!!!!!!!!!!!!!!!!SENDING TO SAVE TIME I accomplished?', time.time() - start)
-

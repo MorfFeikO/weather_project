@@ -21,12 +21,14 @@ from app.models import CountryDBStatistic, FreshWeather
 
 
 def save_city_to_db(data):
-    """
-    Save data to City table.
+    """Save data to City table.
     ...
-    :arg:
-        data: namedtuple
-            WeatherData(country, city, temperature, condition, created_date)
+    :param data: dict
+        Dict with weather data {'country': <value>,
+                                'city': <value>,
+                                'temperature': <value>,
+                                'condition': <value>,
+                                'created_date': <value>}
     """
     try:
         session_sql.add(City(
@@ -39,12 +41,14 @@ def save_city_to_db(data):
 
 
 def save_weather_to_db(data):
-    """
-    Save data to Weather table.
-        ...
-    :arg:
-        data: namedtuple
-            WeatherData(country, city, temperature, condition, created_date)
+    """Save data to Weather table.
+    ...
+    :param data: dict
+        Dict with weather data {'country': <value>,
+                                'city': <value>,
+                                'temperature': <value>,
+                                'condition': <value>,
+                                'created_date': <value>})
     """
     city = session_sql.query(City).filter(City.name == data['city']).one()
     session_sql.add(Weather(
@@ -57,31 +61,38 @@ def save_weather_to_db(data):
 
 
 def save_data_to_db(data):
+    """Save weather data to database.
+    ...
+    :param data: bytes
+        XML bytes string
     """
-    Save weather data to database.
-        ...
-    :arg:
-        data: namedtuple
-            WeatherData(country, city, temperature, condition, created_date)"""
     data = transform_data(data)
     save_city_to_db(data)
     save_weather_to_db(data)
 
 
 def transform_data(data):
+    """Transform XML weather data to dict.
+    :param data: bytes
+        XML bytes string.
+    :return weather: dict
+        Dict with weather data {'country': <value>,
+                                'city': <value>,
+                                'temperature': <value>,
+                                'condition': <value>,
+                                'created_date': <value>}
+    """
     dict_data = xmltodict.parse(data)
-    for _, value in dict_data.items():
-        return value
+    for _, weather in dict_data.items():
+        return weather
 
 
 def get_statistic_from_db():
-    """
-    Get fresh weather data from database.
+    """Get fresh weather data from database.
     ...
-    :return:
-        weather_check: dict
-            Dict of CountryDBStatistic(country, records, last_check, last_city)
-             namedtuple objects.
+    :return weather_check: dict
+        Dict of CountryDBStatistic(country, records, last_check, last_city)
+        namedtuple objects.
     """
     data = session_sql.query(
         City.country, func.count(City.country)
@@ -105,37 +116,11 @@ def get_statistic_from_db():
 
 
 def get_data_from_db():
-    """
-    Get fresh weather data from database.
+    """Get fresh weather data from database.
     ...
-    :return:
-        data: list
-            List of FreshWeather(country, city, temperature, condition)
-             namedtuple objects.
-    """
-    data = []
-    cities = session_sql.query(func.distinct(City.name)).all()
-    for city in cities:
-        country, city, temperature, condition = session_sql.query(
-            City.country, City.name, Weather.temperature, Weather.condition
-        ).filter(City.name == city[0]).join(City.weather).order_by(
-            Weather.created_date.desc()
-        ).first()
-        data.append(FreshWeather(country, city, temperature, condition))
-    return data
-
-
-#######################################
-
-
-async def get_data_from_db_async():
-    """
-    Get fresh weather data from database.
-    ...
-    :return:
-        data: list
-            List of FreshWeather(country, city, temperature, condition)
-             namedtuple objects.
+    :return data: list
+        List of FreshWeather(country, city, temperature, condition)
+        namedtuple objects.
     """
     data = []
     cities = session_sql.query(func.distinct(City.name)).all()

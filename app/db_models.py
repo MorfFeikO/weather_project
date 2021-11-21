@@ -1,5 +1,5 @@
 """
-SQLAlchemy database models module.
+SQLAlchemy db models and db connection module.
 
 Objects:
     session_sql:
@@ -35,7 +35,7 @@ class Weather(base):
     """
     Database weather model.
     ...
-    :param:
+    :args:
         id: Integer, pk
         city_id: ForeignKey("City.id")
         temperature: Float
@@ -55,7 +55,7 @@ class City(base):
     """
     Database city model.
     ...
-    :param:
+    :args:
         id: Integer, pk
         name: String(85)
         country: String(56)

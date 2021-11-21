@@ -1,57 +1,49 @@
+"""Async rabbitmq calls consumer."""
+import sys
 import asyncio
 import typer
-import sys
+
+from aio_pika import IncomingMessage, ExchangeType
+
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
-from aio_pika import connect, IncomingMessage, ExchangeType
-
 from app.db_requests import save_data_to_db
 from app.files_requests import save_data_to_file
-from app.files_requests_old import save_data_to_file2 as sf
-# from db_requests import save_data_to_db
-# from files_requests import save_data_to_file
+from app.rabbitmq_reconnect import connection_wait
 
 
 async def on_message_db(message: IncomingMessage):
+    """Save to database callback.
+    ...
+    :param message: IncomingMessage
+        Single message from rabbitmq with database data in body.
+    """
     async with message.process():
         save_data_to_db(message.body)
 
 
 async def on_message_txt(message: IncomingMessage):
+    """Save to file callback.
+    ...
+    :param message: IncomingMessage
+        Single message from rabbitmq with file data in body.
+    """
     async with message.process():
-        # save_data_to_file(message.body)
-        sf(message.body)  # changed here to old version
+        save_data_to_file(message.body)
 
 
-# async def on_message(message: IncomingMessage):
-#    async with message.process():
-#        country = message.routing_key
-#        CONSUMER_LIST[country](message.body)
-
-
-async def connection_wait(host, loop, state=False):
-    while not state:
-        try:
-            connection = await connect(host=host, loop=loop)
-            state = True
-        except ConnectionError:
-            state = False
-    return connection
-
-
-async def main(loop,
-               queue_name,
-               callback
-               ):
+async def main(loop, queue_name, callback):
+    """Connect consumer to rabbitmq and start listening.
+    ...
+    :param loop:
+        Running event loop.
+    :param queue_name: str
+        Name of the queue (name of the country).
+    :param callback: func
+        Callback function depends on queue name.
+    """
     # Perform connection
-    """
-    try:
-        connection = await connect(host='rabbitmq', loop=loop, connection_attempts=5, retry_delay=5)
-    except ConnectionError:
-        await asyncio.sleep(10)
-        connection = await connect(host='rabbitmq', loop=loop, connection_attempts=5, retry_delay=5)
-    """
     connection = await connection_wait(host='rabbitmq', loop=loop)
 
     # Creating a channel
@@ -72,6 +64,11 @@ async def main(loop,
 
 
 def consumer_run(queue_name):
+    """Start consumer to listen the queue.
+    ...
+    :param queue_name: str
+        Name of the queue (name of the country).
+    """
     loop = asyncio.get_event_loop()
 
     # there are workers for 5 countries in the list.
@@ -100,13 +97,3 @@ CONSUMER_LIST = {
 
 if __name__ == '__main__':
     typer.run(consumer_run)
-    # print('Ukraine listening')
-    # consumer_run('Ukraine')
-    # print('UK listening')
-    # consumer_run('UK')
-    # print('Italy listening')
-    # consumer_run('Italy')
-    # print('USA listening')
-    # consumer_run('USA')
-    # print('China listening')
-    # consumer_run('China')
