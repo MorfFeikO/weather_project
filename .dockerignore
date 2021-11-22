@@ -3,4 +3,5 @@ venv
 Dockerfile
 .idea
 .git
-app/data/
+__pycache__
+.pytest_cache

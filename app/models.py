@@ -48,8 +48,9 @@ class CityFiles:
         :param date: datetime.datetime
             Date of weather check.
         """
-        self.checks.append(date)
-        self.last_check = max(self.checks).strftime('%Y%m%d')
+        if date not in self.checks:
+            self.checks.append(date)
+            self.last_check = max(self.checks).strftime('%Y%m%d')
 
     def get_last_check_filename(self):
         """Get filename of last check.
