@@ -40,7 +40,6 @@ class CityFiles:
         self.country = country
         self.checks = []
         self.last_check = None
-        self.filename = None
 
     def add_check_date(self, date):
         """Add weather check date and set last check date.
@@ -59,6 +58,9 @@ class CityFiles:
             String pattern: "<country_name>_<city_name>_<date>.txt"
         """
         return f'{self.country}_{self.name}_{self.last_check}.txt'
+
+    def __repr__(self):
+        return f'CityFiles({self.name}, {self.country})'
 
 
 class CountryFiles:
@@ -81,3 +83,6 @@ class CountryFiles:
         self.first_check = min(self.checks).strftime('%d %b %Y').lower()
         self.last_check = max(self.checks).strftime('%d %b %Y').lower()
         self.count += 1
+
+    def __repr__(self):
+        return f'CountryFiles({self.name})'

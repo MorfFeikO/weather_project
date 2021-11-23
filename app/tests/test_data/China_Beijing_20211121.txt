@@ -1,0 +1,1 @@
+{"country": "China", "city": "Beijing", "temperature": "0.94", "condition": "clear sky"}

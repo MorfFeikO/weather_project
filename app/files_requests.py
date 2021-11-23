@@ -40,7 +40,7 @@ def filename_parser(filename):
     return country, city, datetime.date(int(year), int(month), int(day))
 
 
-def get_city_data():
+def get_city_data():  # TODO: refactor
     """Get dictionary of unique CityFiles objects.
     ...
     :return cities: dict
@@ -48,10 +48,17 @@ def get_city_data():
     """
     cities = {}
     for filename in get_files_list():
-        country, city, date = filename_parser(filename)
-        if city not in cities:
-            cities[city] = CityFiles(city, country)
-        cities[city].add_check_date(date)
+        try:
+            country, city, date = filename_parser(filename)
+            if city not in cities:
+                cities[city] = CityFiles(city, country)
+            cities[city].add_check_date(date)
+        except IndexError as e:
+            # log error here
+            continue
+        except ValueError as e:
+            # log error here
+            continue
     return cities
 
 
@@ -77,7 +84,7 @@ def get_data_from_files():
     return data
 
 
-def get_statistic_from_files():
+def get_statistic_from_files():  # TODO: refactor
     """Get statistic from files.
     ...
     :return countries: dict
@@ -85,10 +92,17 @@ def get_statistic_from_files():
     """
     countries = {}
     for filename in get_files_list():
-        country, _, date = filename_parser(filename)
-        if country not in countries:
-            countries[country] = CountryFiles(country)
-        countries[country].add_check_date(date)
+        try:
+            country, _, date = filename_parser(filename)
+            if country not in countries:
+                countries[country] = CountryFiles(country)
+            countries[country].add_check_date(date)
+        except IndexError as e:
+            # log error here
+            continue
+        except ValueError as e:
+            # log error here
+            continue
     return countries
 
 
@@ -98,7 +112,7 @@ def save_data_to_file(data):
     :arg data: namedtuple
         WeatherData(country, city, temperature, condition, created_date)
     """
-    filepath = get_filepath()
+    filepath = get_filepath()  # TODO: validate xml data
     if not os.path.exists(filepath):
         os.mkdir(filepath)
     country, city, created_date, data = xml_to_dict(data)
