@@ -20,21 +20,14 @@ async def produce(loop, message_body, queue_name):
         Name of the queue (name of the country).
     """
     # Perform connection
-    connection = await connection_wait(host='rabbitmq', loop=loop)
+    connection = await connection_wait(host="rabbitmq", loop=loop)
 
     # Creating a channel
     channel = await connection.channel()
-    weather_exchange = await channel.declare_exchange(
-        "weather", ExchangeType.DIRECT
-    )
-    message = Message(
-        message_body,
-        delivery_mode=DeliveryMode.PERSISTENT
-    )
+    weather_exchange = await channel.declare_exchange("weather", ExchangeType.DIRECT)
+    message = Message(message_body, delivery_mode=DeliveryMode.PERSISTENT)
 
     # Sending the message
-    await weather_exchange.publish(
-        message, routing_key=queue_name
-    )
+    await weather_exchange.publish(message, routing_key=queue_name)
 
     await connection.close()

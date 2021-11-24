@@ -16,16 +16,26 @@ import os
 from dotenv import load_dotenv
 
 from sqlalchemy import create_engine
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, UniqueConstraint
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Float,
+    ForeignKey,
+    DateTime,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy.ext.declarative import declarative_base
 
 
 load_dotenv()
 
-engine = create_engine(f"postgresql+pg8000://"
-                       f"{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@"
-                       f"{os.getenv('POSTGRES_HOST')}/{os.getenv('POSTGRES_DB')}")
+engine = create_engine(
+    f"postgresql+pg8000://"
+    f"{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@"
+    f"{os.getenv('POSTGRES_HOST')}/{os.getenv('POSTGRES_DB')}"
+)
 conn = engine.connect()
 session_sql = Session(bind=engine)
 base = declarative_base()
@@ -42,6 +52,7 @@ class Weather(base):
         condition: String(100)
         created_date: DateTime()
     """
+
     __tablename__ = "weather"
 
     id = Column("id", Integer, primary_key=True)
@@ -61,6 +72,7 @@ class City(base):
         country: String(56)
         UniqueConstraint(name, country)
     """
+
     __tablename__ = "city"
 
     id = Column("id", Integer, primary_key=True)
@@ -68,7 +80,7 @@ class City(base):
     country = Column("country", String(56))
     weather = relationship("Weather", cascade="all,delete", backref="city")
 
-    __table_args__ = (UniqueConstraint("name", "country", name="location"), )
+    __table_args__ = (UniqueConstraint("name", "country", name="location"),)
 
 
 base.metadata.create_all(engine)

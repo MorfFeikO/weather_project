@@ -6,6 +6,7 @@ import typer
 from aio_pika import IncomingMessage, ExchangeType
 
 from pathlib import Path
+
 sys.path.append(str(Path(__file__).parent.parent))
 
 from app.db_requests import save_data_to_db
@@ -44,7 +45,7 @@ async def main(loop, queue_name, callback):
         Callback function depends on queue name.
     """
     # Perform connection
-    connection = await connection_wait(host='rabbitmq', loop=loop)
+    connection = await connection_wait(host="rabbitmq", loop=loop)
 
     # Creating a channel
     channel = await connection.channel()
@@ -75,13 +76,11 @@ def consumer_run(queue_name):
     # What about others if they will be added?
     # Additional worker for other countries is!
     if queue_name not in CONSUMER_LIST:
-        queue_name = 'other'
+        queue_name = "other"
 
-    loop.create_task(main(
-            loop,
-            queue_name=queue_name,
-            callback=CONSUMER_LIST[queue_name]
-        ))
+    loop.create_task(
+        main(loop, queue_name=queue_name, callback=CONSUMER_LIST[queue_name])
+    )
     loop.run_forever()
 
 
@@ -91,9 +90,9 @@ CONSUMER_LIST = {
     "Italy": on_message_txt,
     "China": on_message_txt,
     "USA": on_message_txt,
-    "other": on_message_db
+    "other": on_message_db,
 }
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     typer.run(consumer_run)

@@ -26,18 +26,18 @@ from app.files_requests import get_data_from_files, get_statistic_from_files
 app = FastAPI()
 
 BASE_DIR = pathlib.Path(__file__).parent.parent
-template_folder = BASE_DIR / 'templates'
+template_folder = BASE_DIR / "templates"
 templates = Jinja2Templates(directory=str(template_folder))
 
 
-@app.get('/')
+@app.get("/")
 def index(request: Request):
     """Route to start page."""
     args = {"request": request}
     return templates.TemplateResponse("start_page.html", args)
 
 
-@app.get('/weather')
+@app.get("/weather")
 async def check_weather(request: Request):  # TODO: try\except if smth wrong
     """Route to fresh weather report."""
     await send_data_to_rabbitmq()
@@ -49,7 +49,7 @@ async def check_weather(request: Request):  # TODO: try\except if smth wrong
     return templates.TemplateResponse("check_weather.html", args)
 
 
-@app.get('/statistic')
+@app.get("/statistic")
 def get_statistic(request: Request):
     """Route to weather statistic report."""
     db_data = get_statistic_from_db()
@@ -58,5 +58,5 @@ def get_statistic(request: Request):
     return templates.TemplateResponse("statistics_weather.html", args)
 
 
-if __name__ == '__main__':
-    uvicorn.run("main:app", port=1111, host='127.0.0.1')
+if __name__ == "__main__":
+    uvicorn.run("main:app", port=1111, host="127.0.0.1")

@@ -17,7 +17,7 @@ import json
 import datetime
 import xmltodict
 
-from app.models import CityFiles, CountryFiles, FreshWeather
+from app.models import CityFiles, CountryFiles, FreshWeather, File
 
 
 def get_files_list():
@@ -35,12 +35,12 @@ def get_filepath(data_folder="files_data"):
 
 def filename_parser(filename):
     """Parse data from filename."""
-    pattern = r'(\D*)_(\D*)_(\d{4})(\d{2})(\d{2})'
+    pattern = r"(\D*)_(\D*)_(\d{4})(\d{2})(\d{2})"
     country, city, year, month, day = re.findall(pattern, filename)[0]
     return country, city, datetime.date(int(year), int(month), int(day))
 
 
-def get_city_data():  # TODO: refactor
+def get_city_data():  # TODO: refactor. similar with get_statistic_form_files()
     """Get dictionary of unique CityFiles objects.
     ...
     :return cities: dict
@@ -73,18 +73,20 @@ def get_data_from_files():
     for _, city_obj in get_city_data().items():
         filepath = get_filepath()
         file = os.path.join(filepath, city_obj.get_last_check_filename())
-        with open(file, 'r', encoding='utf-8') as json_file:
+        with open(file, "r", encoding="utf-8") as json_file:
             json_data = json.load(json_file)
-            data.append(FreshWeather(
-                json_data['country'],
-                json_data['city'],
-                json_data['temperature'],
-                json_data['condition'])
+            data.append(
+                FreshWeather(
+                    json_data["country"],
+                    json_data["city"],
+                    json_data["temperature"],
+                    json_data["condition"],
+                )
             )
     return data
 
 
-def get_statistic_from_files():  # TODO: refactor
+def get_statistic_from_files():  # TODO: refactor. similar with get_city_data()
     """Get statistic from files.
     ...
     :return countries: dict
@@ -117,7 +119,7 @@ def save_data_to_file(data):
         os.mkdir(filepath)
     country, city, created_date, data = xml_to_dict(data)
     filename = f"{country}_{city}_{created_date}.txt"
-    with open(os.path.join(filepath, filename), 'w', encoding='utf-8') as json_file:
+    with open(os.path.join(filepath, filename), "w", encoding="utf-8") as json_file:
         json.dump(data, json_file)
 
 
@@ -135,11 +137,21 @@ def xml_to_dict(data):
     """
     dict_data = xmltodict.parse(data)
     for _, value in dict_data.items():
-        country = value['country']
-        city = value['city']
+        country = value["country"]
+        city = value["city"]
         created_date = datetime.datetime.strptime(
-            value['created_date'],
-            "%Y-%m-%d %H:%M:%S.%f"
-        ).strftime('%Y%m%d')
-        del value['created_date']
+            value["created_date"], "%Y-%m-%d %H:%M:%S.%f"
+        ).strftime("%Y%m%d")
+        del value["created_date"]
         return country, city, created_date, value
+
+
+def get_data(data_type):
+    """"""
+    dict_ = {}
+    for filename in get_files_list():
+        file_obj = File(filename, key=data_type)
+        if file_obj.get_name() not in dict_:
+            dict_[file_obj.get_name()] = file_obj
+        dict_[file_obj.get_name()].add_date(file_obj.get_date())
+    return dict_

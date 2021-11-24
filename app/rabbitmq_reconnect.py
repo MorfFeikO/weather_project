@@ -13,7 +13,7 @@ async def connection_wait(host, loop, state=False):
     :param state: default: False
     :return connection
     """
-    connection = ''
+    connection = ""
     while not state:
         try:
             connection = await connect(host=host, loop=loop)
