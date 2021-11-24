@@ -21,7 +21,7 @@ from fastapi.templating import Jinja2Templates
 
 from app.services import send_data_to_rabbitmq
 from app.db_requests import get_data_from_db, get_statistic_from_db
-from app.files_requests import get_data_from_files, get_statistic_from_files
+from app.files_requests import get_data_from_files, get_data
 
 app = FastAPI()
 
@@ -53,7 +53,7 @@ async def check_weather(request: Request):  # TODO: try\except if smth wrong
 def get_statistic(request: Request):
     """Route to weather statistic report."""
     db_data = get_statistic_from_db()
-    files_data = get_statistic_from_files()
+    files_data = get_data(data_type="statistics")
     args = {"request": request, "db_data": db_data, "files_data": files_data}
     return templates.TemplateResponse("statistics_weather.html", args)
 

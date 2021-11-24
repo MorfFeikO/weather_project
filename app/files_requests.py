@@ -12,12 +12,11 @@ Functions:
         Get statistic from files.
 """
 import os
-import re
 import json
 import datetime
 import xmltodict
 
-from app.models import CityFiles, CountryFiles, FreshWeather, File
+from app.models import FreshWeather, File
 
 
 def get_files_list():
@@ -33,33 +32,20 @@ def get_filepath(data_folder="files_data"):
     return os.path.join(os.getcwd(), data_folder)
 
 
-def filename_parser(filename):
-    """Parse data from filename."""
-    pattern = r"(\D*)_(\D*)_(\d{4})(\d{2})(\d{2})"
-    country, city, year, month, day = re.findall(pattern, filename)[0]
-    return country, city, datetime.date(int(year), int(month), int(day))
-
-
-def get_city_data():  # TODO: refactor. similar with get_statistic_form_files()
-    """Get dictionary of unique CityFiles objects.
-    ...
-    :return cities: dict
-        Dictionary of unique CityFiles objects.
-    """
-    cities = {}
+def get_data(data_type):
+    """"""
+    dict_ = {}
     for filename in get_files_list():
         try:
-            country, city, date = filename_parser(filename)
-            if city not in cities:
-                cities[city] = CityFiles(city, country)
-            cities[city].add_check_date(date)
-        except IndexError as e:
-            # log error here
-            continue
-        except ValueError as e:
-            # log error here
-            continue
-    return cities
+            file_obj = File(filename, key=data_type)
+            if file_obj.get_name() not in dict_:
+                dict_[file_obj.get_name()] = file_obj
+            dict_[file_obj.get_name()].add_date(file_obj.get_date())
+        except IndexError:
+            continue  # log info
+        except ValueError:
+            continue  # log info
+    return dict_
 
 
 def get_data_from_files():
@@ -70,9 +56,9 @@ def get_data_from_files():
         namedtuple objects.
     """
     data = []
-    for _, city_obj in get_city_data().items():
+    for _, city_obj in get_data(data_type="data").items():
         filepath = get_filepath()
-        file = os.path.join(filepath, city_obj.get_last_check_filename())
+        file = os.path.join(filepath, city_obj.get_filename())
         with open(file, "r", encoding="utf-8") as json_file:
             json_data = json.load(json_file)
             data.append(
@@ -84,28 +70,6 @@ def get_data_from_files():
                 )
             )
     return data
-
-
-def get_statistic_from_files():  # TODO: refactor. similar with get_city_data()
-    """Get statistic from files.
-    ...
-    :return countries: dict
-        Dictionary of unique CountryFiles objects.
-    """
-    countries = {}
-    for filename in get_files_list():
-        try:
-            country, _, date = filename_parser(filename)
-            if country not in countries:
-                countries[country] = CountryFiles(country)
-            countries[country].add_check_date(date)
-        except IndexError as e:
-            # log error here
-            continue
-        except ValueError as e:
-            # log error here
-            continue
-    return countries
 
 
 def save_data_to_file(data):
@@ -144,14 +108,3 @@ def xml_to_dict(data):
         ).strftime("%Y%m%d")
         del value["created_date"]
         return country, city, created_date, value
-
-
-def get_data(data_type):
-    """"""
-    dict_ = {}
-    for filename in get_files_list():
-        file_obj = File(filename, key=data_type)
-        if file_obj.get_name() not in dict_:
-            dict_[file_obj.get_name()] = file_obj
-        dict_[file_obj.get_name()].add_date(file_obj.get_date())
-    return dict_
