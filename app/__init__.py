@@ -27,6 +27,7 @@ app = FastAPI()
 
 @lru_cache(maxsize=128)
 def get_settings():
+    """Get app config settings."""
     return config_map[os.getenv("CONFIG", "prod")]()
 
 

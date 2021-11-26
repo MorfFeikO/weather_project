@@ -8,10 +8,8 @@ Objects:
     FreshWeather(country, city, temperature, condition)
 
 Classes:
-    CityFiles(name, country)
-        Unique cities info class.
-    CountryFiles(name)
-        Unique countries info class.
+    File(filename, key)
+        Where key in ("data", "statistics")
 """
 import re
 import datetime
@@ -33,7 +31,7 @@ from app import base
 
 class Weather(base):
     """
-    Database weather model.
+    Weather database model.
 
     :args:
         id: Integer, pk
@@ -54,7 +52,7 @@ class Weather(base):
 
 class City(base):
     """
-    Database city model.
+    City database model.
 
     :args:
         id: Integer, pk
@@ -73,6 +71,93 @@ class City(base):
     __table_args__ = (UniqueConstraint("name", "country", name="location"),)
 
 
+class File:
+    """Fabric class which create subclass if key."""
+    _registry = {}
+
+    def __init_subclass__(cls, prefix=None, **kwargs):
+        """Register subclasses by prefixes in class constructor."""
+        super().__init_subclass__(**kwargs)
+        cls._registry[prefix] = cls
+
+    def __new__(cls, filename, key=None):
+        """Create object of subclass if key else File obj."""
+        return object.__new__(cls._registry[key] if key else cls)
+
+    def __init__(self, filename, **kwargs):
+        self._checks = []
+        self._country = None
+        self._city = None
+        self._date = None
+        self._parse_filename(filename)
+
+    def _parse_filename(self, filename):
+        """Parse data from filename."""
+        pattern = r"(\D*)_(\D*)_(\d{4})(\d{2})(\d{2}).txt"
+        self._country, self._city, year, month, day = (
+            re.findall(pattern, filename)[0]
+        )
+        self._date = datetime.date(int(year), int(month), int(day))
+        self._checks.append(self._date)
+
+    def add_date(self, date):
+        """Add unique check date to list of checks."""
+        if date not in self._checks:
+            self._checks.append(date)
+
+    @property
+    def date(self):
+        """Get check date of newly created file"""
+        return self._date
+
+    @property
+    def name(self):
+        """Get name of file. NotImplemented"""
+        return NotImplemented
+
+
+class CityFile(File, prefix="data"):
+    """Class for gathering unique city data."""
+
+    @property
+    def name(self) -> str:
+        """Get name of city."""
+        return self._city
+
+    @property
+    def last_check_filename(self) -> str:
+        """Get name of file for last checked date of city."""
+        last_check = max(self._checks).strftime("%Y%m%d")
+        return f"{self._country}_{self._city}_{last_check}.txt"
+
+
+class CountryFile(File, prefix="statistics"):
+    """Class for gathering unique country data."""
+    def __init__(self, filename, **kwargs):
+        super().__init__(filename, **kwargs)
+        self.count = 0
+
+    @property
+    def name(self) -> str:
+        """Get name of country."""
+        return self._country
+
+    @property
+    def first_check(self) -> str:
+        """Get country first check date."""
+        return min(self._checks).strftime("%d %b %Y").lower()
+
+    @property
+    def last_check(self) -> str:
+        """Get country last check date."""
+        return max(self._checks).strftime("%d %b %Y").lower()
+
+    def add_date(self, date):
+        """Add unique check date to list of checks and inc count."""
+        super().add_date(date)
+        self.count += 1
+
+
 WeatherXML = collections.namedtuple("WeatherXML", ["country", "xml_data"])
 
 CountryDBStatistic = collections.namedtuple(
@@ -82,89 +167,3 @@ CountryDBStatistic = collections.namedtuple(
 FreshWeather = collections.namedtuple(
     "FreshWeather", ["country", "city", "temperature", "condition"]
 )
-
-
-class File:
-    _registry = {}
-
-    def __init_subclass__(cls, prefix="", **kwargs):
-        super().__init_subclass__(**kwargs)
-        cls._registry[prefix] = cls
-
-    def __new__(cls, filename, key=None):
-        if key is not None:
-            subclass = cls._registry[key]
-            obj = object.__new__(subclass)
-            return obj
-        return object.__new__(cls)
-
-    def __init__(self, filename, **kwargs):
-        self.filename = filename
-        self.checks = []
-
-    def parse_filename(self):
-        """Parse data from filename."""
-        pattern = r"(\D*)_(\D*)_(\d{4})(\d{2})(\d{2}).txt"
-        country, city, year, month, day = re.findall(pattern, self.filename)[0]
-        return country, city, datetime.date(int(year), int(month), int(day))
-
-    def get_country(self):
-        return self.parse_filename()[0]
-
-    def get_city(self):
-        return self.parse_filename()[1]
-
-    def get_date(self):
-        return self.parse_filename()[2]
-
-    def add_date(self, date):
-        if date not in self.checks:
-            self.checks.append(date)
-
-    def get_last_check(self):
-        return max(self.checks).strftime("%Y%m%d")
-
-    def get_first_check(self):
-        pass
-
-    def get_name(self):
-        pass
-
-    def get_count(self):
-        pass
-
-    def get_filename(self):
-        pass
-
-
-class CityFile(File, prefix="data"):
-    def __init__(self, filename, **kwargs):
-        super().__init__(filename, **kwargs)
-
-    def get_name(self):
-        return self.get_city()
-
-    def get_filename(self):
-        return f"{self.get_country()}_{self.get_name()}_{self.get_last_check()}.txt"
-
-
-class CountryFile(File, prefix="statistics"):
-    def __init__(self, filename, **kwargs):
-        super().__init__(filename, **kwargs)
-        self.count = 0
-
-    def get_name(self):
-        return self.get_country()
-
-    def get_count(self):
-        return self.count
-
-    def get_first_check(self):
-        return min(self.checks).strftime("%d %b %Y").lower()
-
-    def get_last_check(self):
-        return max(self.checks).strftime("%d %b %Y").lower()
-
-    def add_date(self, date):
-        super().add_date(date)
-        self.count += 1

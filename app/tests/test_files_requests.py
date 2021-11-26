@@ -2,7 +2,6 @@
 import json
 import os
 import pathlib
-import datetime
 import shutil
 import pytest
 
@@ -16,45 +15,129 @@ from app.files_requests import (
     get_data,
 )
 from app.models import FreshWeather, CountryFile, CityFile
+from app import settings
+from app.config import PROJECT_DIR
 
 BASE_DIR = pathlib.Path(__file__).parent
+TEST_DIR = settings.TEST_DIR
 
 
-@pytest.mark.parametrize(
-    "test_input, expected",
-    [
-        ("folder", BASE_DIR.parent.parent / "folder"),
-        ("files_data", BASE_DIR.parent.parent / "files_data"),
-    ],
-)
-def test_get_filepath(test_input, expected):
+def test_get_filepath_dir_exists():  # TODO: fixture delete dirs before and after
     """Test get_filepath()."""
-    assert get_filepath(test_input) == str(expected)
+    path = PROJECT_DIR / "test_dir"
+    os.mkdir(path)
+    assert get_filepath(path) == str(path)
+    shutil.rmtree(path)
 
 
-@pytest.mark.parametrize(
-    "test_input, expected",
-    [("data", []), ("test_data", os.listdir(BASE_DIR / "test_data"))],
-)
+@pytest.mark.parametrize("folder, expected", [
+    ("", "files_data"),
+    ("test_folder", "test_folder")
+])
+def test_get_filepath_dir_not_exists(folder, expected):
+    """Test get_filepath() with not existing folder."""
+    assert get_filepath(folder) == str(PROJECT_DIR / expected)
+    assert isinstance(get_filepath(folder), str)
+    shutil.rmtree(PROJECT_DIR / expected)
+
+
+def test_get_filepath_dir_default():
+    """Test get_filepath() with default folder."""
+    assert get_filepath() == str(PROJECT_DIR / "files_data")
+    assert isinstance(get_filepath(), str)
+    shutil.rmtree(PROJECT_DIR / "files_data")
+
+
+@pytest.mark.parametrize("test_input, expected", [
+    ("data", []),
+    ("test_data", os.listdir(TEST_DIR / "test_data"))
+])
 def test_get_files_list(monkeypatch, test_input, expected):
     """Test get_files_list()."""
 
     def mock_path():
-        return BASE_DIR / test_input
+        return TEST_DIR / test_input
 
     monkeypatch.setattr(app.files_requests, "get_filepath", mock_path)
-    assert get_files_list() == expected
+    test_func = get_files_list()
+    assert test_func == expected
+    assert isinstance(test_func, list)
+
+
+@pytest.mark.parametrize("files_list, input_data, expected", [
+    ([], "statistics", {}),
+    ([], "data", {})
+])
+def test_get_data_empty(monkeypatch, files_list, input_data, expected):
+    """Test get_data() with empty folder."""
+
+    def mock_list():
+        return files_list
+
+    monkeypatch.setattr(app.files_requests, "get_files_list", mock_list)
+    test_func = get_data(input_data)
+    assert test_func == expected
+    assert isinstance(test_func, dict)
+
+
+@pytest.mark.parametrize("files_list, input_data, expected_len, expected_instance", [
+        (["China_Beijing_20211121.txt"], "statistics", 1, CountryFile),
+        (["China_Beijing_20211121.txt"], "data", 1, CityFile),
+        (["China_Beijing_20211121.txt", "China_Beijing_20211120.txt"],
+         "statistics",
+         1,
+         CountryFile,),
+        (["China_Beijing_20211121.txt", "China_Beijing_20211120.txt"],
+         "data",
+         1,
+         CityFile,),
+        (["China_Beijing_20211121.txt", "Ukraine_Lviv_20211121.txt"],
+         "statistics",
+         2,
+         CountryFile,),
+        (["China_Beijing_20211121.txt", "Ukraine_Lviv_20211121.txt"],
+         "data",
+         2,
+         CityFile,)
+])
+def test_get_data(monkeypatch, files_list, input_data, expected_len, expected_instance):
+    """Test get_data()."""
+
+    def mock_files_list():
+        return files_list
+
+    monkeypatch.setattr(app.files_requests, "get_files_list", mock_files_list)
+    test_func = get_data(input_data)
+    for _, weather in test_func.items():
+        assert isinstance(weather, expected_instance)
+    assert len(test_func) == expected_len
+    assert isinstance(test_func, dict)
+
+
+@pytest.mark.parametrize("test_input, data_type", [
+    (["file.net"], "statistics"), (["Italy_Rome_11201246.txt"], "statistics")
+])
+def test_get_data_errors(monkeypatch, test_input, data_type):
+    """Test get_data() errors raise."""
+
+    def mock_files_list():
+        return test_input
+
+    monkeypatch.setattr(app.files_requests, "get_files_list", mock_files_list)
+    test_func = get_data(data_type)
+    assert len(test_func) == 0
+    assert isinstance(test_func, dict)
 
 
 def test_get_data_from_files(monkeypatch):
     """Test get_data_from_files()."""
 
     def mock_filepath():
-        return BASE_DIR / "test_data"
+        return TEST_DIR / "test_data"
 
     monkeypatch.setattr(app.files_requests, "get_filepath", mock_filepath)
     test_func = get_data_from_files()
-    for weather in get_data_from_files():
+    for weather in test_func:
         assert isinstance(weather, FreshWeather)
     assert len(test_func) == 2
     assert isinstance(test_func, list)
@@ -97,28 +180,26 @@ def test_save_data_to_file(monkeypatch):
     """Test save_data_to_file()."""
 
     def mock_path():
-        return BASE_DIR / "test_data_2"
+        return TEST_DIR / "test_data_save"
 
     def mock_data(_):
-        return (
-            "China",
-            "Hong Kong",
-            "20211121",
-            {
-                "country": "China",
-                "city": "Hong Kong",
-                "temperature": "4.28",
-                "condition": "clear sky",
-            },
-        )
+        return ("China", "Hong Kong", "20211121", {
+            "country": "China",
+            "city": "Hong Kong",
+            "temperature": "4.28",
+            "condition": "clear sky",
+        })
 
     monkeypatch.setattr(app.files_requests, "get_filepath", mock_path)
     monkeypatch.setattr(app.files_requests, "xml_to_dict", mock_data)
 
-    save_data_to_file("")
-    filepath = BASE_DIR / "test_data_2"
+    filepath = TEST_DIR / "test_data_save"
+    os.mkdir(filepath)
     filename = "China_Hong Kong_20211121.txt"
-    assert os.listdir(filepath) == [filename]
+
+    save_data_to_file(b"")
+
+    assert filename in os.listdir(filepath)
     with open(os.path.join(filepath, filename), "rb") as file:
         data = json.load(file)
         assert data["country"] == "China"
@@ -126,84 +207,3 @@ def test_save_data_to_file(monkeypatch):
         assert data["temperature"] == "4.28"
         assert data["condition"] == "clear sky"
     shutil.rmtree(filepath, ignore_errors=True)
-
-
-@pytest.mark.parametrize(
-    "files_list, input_data, expected", [([], "statistics", {}), ([], "data", {})]
-)
-def test_get_data_empty(monkeypatch, files_list, input_data, expected):
-    """"""
-
-    def mock_list():
-        return files_list
-
-    monkeypatch.setattr(app.files_requests, "get_files_list", mock_list)
-    assert get_data(input_data) == expected
-
-
-@pytest.mark.parametrize(
-    "files_list, input_data, expected_len, expected_instance",
-    [
-        (["China_Beijing_20211121.txt"], "statistics", 1, CountryFile),
-        (
-            ["China_Beijing_20211121.txt", "China_Beijing_20211120.txt"],
-            "statistics",
-            1,
-            CountryFile,
-        ),
-        (
-            [
-                "China_Beijing_20211121.txt",
-                "China_Beijing_20211120.txt",
-                "Ukraine_Lviv_20211121.txt",
-            ],
-            "statistics",
-            2,
-            CountryFile,
-        ),
-        (["China_Beijing_20211121.txt"], "data", 1, CityFile),
-        (
-            ["China_Beijing_20211121.txt", "China_Beijing_20211120.txt"],
-            "data",
-            1,
-            CityFile,
-        ),
-        (
-            [
-                "China_Beijing_20211121.txt",
-                "China_Beijing_20211120.txt",
-                "Ukraine_Lviv_20211121.txt",
-            ],
-            "data",
-            2,
-            CityFile,
-        ),
-    ],
-)
-def test_get_data(monkeypatch, files_list, input_data, expected_len, expected_instance):
-    """Test get_data()."""
-
-    def mock_files_list():
-        return files_list
-
-    monkeypatch.setattr(app.files_requests, "get_files_list", mock_files_list)
-    tested_func = get_data(input_data)
-    for _, weather in tested_func.items():
-        assert isinstance(weather, expected_instance)
-    assert len(tested_func) == expected_len
-    assert isinstance(tested_func, dict)
-
-
-@pytest.mark.parametrize(
-    "test_input, data_type",
-    [(["file.net"], "statistics"), (["Italy_Rome_11201246.txt"], "statistics")],
-)
-def test_get_data_errors(monkeypatch, test_input, data_type):
-    """Test get_data() errors raise."""
-
-    def mock_files_list():
-        return test_input
-
-    monkeypatch.setattr(app.files_requests, "get_files_list", mock_files_list)
-    tested_func = get_data(data_type)
-    assert len(tested_func) == 0

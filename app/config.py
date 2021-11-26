@@ -75,7 +75,7 @@ class BaseConfig:
 class TestingConfig(BaseConfig):
     """Testing app config."""
     TEST_DIR = APP_DIR / "tests"
-    SQLALCHEMY_DATABASE_URI: str = f"sqlite:///{TEST_DIR / 'db.sqlite3'}"
+    SQLALCHEMY_DATABASE_URI: str = f"sqlite:///{TEST_DIR / 'test_db.sqlite3'}"
 
 
 config_map = {
