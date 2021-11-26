@@ -16,7 +16,7 @@ from app.rabbitmq_reconnect import connection_wait
 
 async def on_message_db(message: IncomingMessage):
     """Save to database callback.
-    ...
+
     :param message: IncomingMessage
         Single message from rabbitmq with database data in body.
     """
@@ -26,7 +26,7 @@ async def on_message_db(message: IncomingMessage):
 
 async def on_message_txt(message: IncomingMessage):
     """Save to file callback.
-    ...
+
     :param message: IncomingMessage
         Single message from rabbitmq with file data in body.
     """
@@ -36,7 +36,7 @@ async def on_message_txt(message: IncomingMessage):
 
 async def main(loop, queue_name, callback):
     """Connect consumer to rabbitmq and start listening.
-    ...
+
     :param loop:
         Running event loop.
     :param queue_name: str
@@ -66,7 +66,7 @@ async def main(loop, queue_name, callback):
 
 def consumer_run(queue_name):
     """Start consumer to listen the queue.
-    ...
+
     :param queue_name: str
         Name of the queue (name of the country).
     """

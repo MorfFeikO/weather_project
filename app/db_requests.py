@@ -1,6 +1,6 @@
 """
 Operations with weather data database module.
-...
+
 Functions:
     save_data_to_db(data)
         Save weather data to database.
@@ -24,7 +24,7 @@ from app.models import CountryDBStatistic, FreshWeather
 
 def save_city_to_db(data: dict):
     """Save data to City table.
-    ...
+
     :param data: dict
         Dict with weather data {'country': <value>,
                                 'city': <value>,
@@ -41,7 +41,7 @@ def save_city_to_db(data: dict):
 
 def save_weather_to_db(data: dict):
     """Save data to Weather table.
-    ...
+
     :param data: dict
         Dict with weather data {'country': <value>,
                                 'city': <value>,
@@ -63,7 +63,7 @@ def save_weather_to_db(data: dict):
 
 def save_data_to_db(data):
     """Save weather data to database.
-    ...
+
     :param data: bytes
         XML bytes string
     """
@@ -90,7 +90,7 @@ def transform_data(data):
 
 def get_statistic_from_db():
     """Get fresh weather data from database.
-    ...
+
     :return weather_check: dict
         Dict of CountryDBStatistic(country, records, last_check, last_city)
         namedtuple objects.
@@ -131,7 +131,7 @@ def get_statistic_from_db():
 
 def get_data_from_db():
     """Get fresh weather data from database.
-    ...
+
     :return data: list
         List of FreshWeather(country, city, temperature, condition)
         namedtuple objects.

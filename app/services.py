@@ -1,18 +1,17 @@
 """Async weather request module.
-...
+
 Functions:
     send_data_to_rabbitmq()
         Send data to rabbitmq.
 """
-import os
 import asyncio
 import datetime
 
 from lxml import etree, builder
 from aiohttp import ClientSession
 
-from app import DEFAULT_INFO, url_pattern
-from app.async_prod import produce as pr
+from app import default_info, url_pattern
+from app.producer import produce as pr
 from app.models import WeatherXML
 
 
@@ -26,26 +25,19 @@ def create_lxml_weather(country, city, temperature, condition, date):
     :return lxml tree
     """
     elem = builder.ElementMaker()
-    e_root = elem.current
-    e_country = elem.country
-    e_city = elem.city
-    e_temperature = elem.temperature
-    e_condition = elem.condition
-    e_created_date = elem.created_date
-
-    tree = e_root(
-        e_country(country),
-        e_city(city),
-        e_temperature(temperature),
-        e_condition(condition),
-        e_created_date(date),
+    tree = elem.current(
+        elem.country(country),
+        elem.city(city),
+        elem.temperature(temperature),
+        elem.condition(condition),
+        elem.created_date(date),
     )
     return etree.tostring(tree)
 
 
 def get_data_from_response(data):
     """Get data from xml response.
-    ...
+
     :return tuple(country, city, temperature, condition)
     """
     root = etree.fromstring(data)
@@ -64,7 +56,7 @@ def get_data_from_response(data):
 
 async def fetch_url_data(session, url, country):
     """Get weather info from single city.
-    ...
+
     :param session: ClientSession()
         async ClientSession obj
     :param url: str
@@ -91,7 +83,7 @@ async def gather_weather():
     tasks = []
     async with ClientSession() as session:
         loop = asyncio.get_event_loop()
-        for country, cities in DEFAULT_INFO.items():
+        for country, cities in default_info.items():
             for city in cities:
                 url = get_url(city)
                 task = loop.create_task(fetch_url_data(session, url, country))

@@ -1,6 +1,6 @@
 """
 Operations with weather data files module.
-...
+
 Functions:
     save_data_to_file(data)
         Save weather data to file.
@@ -50,7 +50,7 @@ def get_data(data_type):
 
 def get_data_from_files():
     """Get fresh weather data from files.
-    ...
+
     :return data: list
         List of FreshWeather(country, city, temperature, condition)
         namedtuple objects.
@@ -74,7 +74,7 @@ def get_data_from_files():
 
 def save_data_to_file(data):
     """Save weather data to file.
-    ...
+
     :arg data: namedtuple
         WeatherData(country, city, temperature, condition, created_date)
     """
@@ -89,7 +89,7 @@ def save_data_to_file(data):
 
 def xml_to_dict(data):
     """Covert data from xml to dict.
-    ...
+
     :param data: bytes
         XML bytes string.
     :return tuple(country, city, created_date, value)

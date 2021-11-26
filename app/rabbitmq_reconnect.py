@@ -1,5 +1,5 @@
 """Rabbitmq host reconnect module.
-...
+
 Functions:
     connection_wait(host, loop, state=False)
 """

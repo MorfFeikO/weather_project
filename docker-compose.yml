@@ -34,7 +34,7 @@ services:
 
   consumer-ukraine:
     build: .
-    command: python app/async_cons.py 'Ukraine'
+    command: python app/consumer.py 'Ukraine'
     restart: always
     volumes:
       - .files_data:/home/myapp/weather_project/files_data
@@ -48,7 +48,7 @@ services:
 
   consumer-uk:
     build: .
-    command: python app/async_cons.py 'UK'
+    command: python app/consumer.py 'UK'
     restart: always
     volumes:
       - .files_data:/home/myapp/weather_project/files_data
@@ -62,7 +62,7 @@ services:
 
   consumer-italy:
     build: .
-    command: python app/async_cons.py 'Italy'
+    command: python app/consumer.py 'Italy'
     restart: always
     volumes:
       - .files_data:/home/myapp/weather_project/files_data
@@ -76,7 +76,7 @@ services:
 
   consumer-usa:
     build: .
-    command: python app/async_cons.py 'USA'
+    command: python app/consumer.py 'USA'
     restart: always
     volumes:
       - .files_data:/home/myapp/weather_project/files_data
@@ -90,7 +90,7 @@ services:
 
   consumer-china:
     build: .
-    command: python app/async_cons.py 'China'
+    command: python app/consumer.py 'China'
     restart: always
     volumes:
       - .files_data:/home/myapp/weather_project/files_data
@@ -104,7 +104,7 @@ services:
 
   consumer-other:
     build: .
-    command: python app/async_cons.py 'other'
+    command: python app/consumer.py 'other'
     restart: always
     volumes:
       - .files_data:/home/myapp/weather_project/files_data

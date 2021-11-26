@@ -1,5 +1,5 @@
 """Module with using models in app.
-...
+
 Objects:
     WeatherXML(country, xml_data)
 
@@ -34,7 +34,7 @@ from app import base
 class Weather(base):
     """
     Database weather model.
-    ...
+
     :args:
         id: Integer, pk
         city_id: ForeignKey("City.id")
@@ -55,7 +55,7 @@ class Weather(base):
 class City(base):
     """
     Database city model.
-    ...
+
     :args:
         id: Integer, pk
         name: String(85)

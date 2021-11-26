@@ -1,5 +1,5 @@
 """Async rabbitmq calls producer.
-...
+
 Functions:
     produce(loop, message_body, queue_name)
         Connect producer to rabbitmq and deliver message.
@@ -11,7 +11,7 @@ from app.rabbitmq_reconnect import connection_wait
 
 async def produce(loop, message_body, queue_name):
     """Connect producer to rabbitmq and deliver message.
-    ...
+
     :param loop:
         Running event loop.
     :param message_body: bytes

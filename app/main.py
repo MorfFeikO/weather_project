@@ -1,6 +1,6 @@
 """
 fastapi Routes.
-...
+
 Routes:
     @app.get('/')
     index()
