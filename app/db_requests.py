@@ -16,11 +16,13 @@ import xmltodict
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 
-from app.db_models import session_sql, City, Weather
+from app.db_models import session_sql
+from app.db_models import City, Weather
+
 from app.models import CountryDBStatistic, FreshWeather
 
 
-def save_city_to_db(data):
+def save_city_to_db(data: dict):
     """Save data to City table.
     ...
     :param data: dict
@@ -37,7 +39,7 @@ def save_city_to_db(data):
         session_sql.rollback()
 
 
-def save_weather_to_db(data):
+def save_weather_to_db(data: dict):
     """Save data to Weather table.
     ...
     :param data: dict

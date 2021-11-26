@@ -31,12 +31,14 @@ from sqlalchemy.ext.declarative import declarative_base
 
 load_dotenv()
 
-engine = create_engine(
-    f"postgresql+pg8000://"
-    f"{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@"
-    f"{os.getenv('POSTGRES_HOST')}/{os.getenv('POSTGRES_DB')}"
-)
-conn = engine.connect()
+SQLALCHEMY_DATABASE_URL = f"postgresql+pg8000://" \
+                          f"{os.getenv('POSTGRES_USER')}:" \
+                          f"{os.getenv('POSTGRES_PASSWORD')}@" \
+                          f"{os.getenv('POSTGRES_HOST')}/" \
+                          f"{os.getenv('POSTGRES_DB')}"
+
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
+# conn = engine.connect()
 session_sql = Session(bind=engine)
 base = declarative_base()
 
