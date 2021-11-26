@@ -14,32 +14,14 @@ Routes:
     get_statistic()
         Route to weather statistic report.
 """
-import os
-import pathlib
 import uvicorn
-from fastapi import FastAPI, Request, Depends
-from fastapi.templating import Jinja2Templates
-from functools import lru_cache
+from fastapi import Request
 
-from app.config import config_map
 from app.services import send_data_to_rabbitmq
 from app.db_requests import get_data_from_db, get_statistic_from_db
 from app.files_requests import get_data_from_files, get_data
 
-
-app = FastAPI()
-
-
-@lru_cache
-def get_settings():
-    return config_map[os.getenv('CONFIG'), "prod"]()
-
-
-settings = get_settings()
-
-BASE_DIR = pathlib.Path(__file__).parent.parent
-template_folder = BASE_DIR / "templates"
-templates = Jinja2Templates(directory=str(template_folder))
+from app import app, templates
 
 
 @app.get("/")

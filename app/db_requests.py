@@ -16,8 +16,8 @@ import xmltodict
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 
-from app.db_models import session_sql
-from app.db_models import City, Weather
+from app import session as session_sql
+from app.models import City, Weather
 
 from app.models import CountryDBStatistic, FreshWeather
 

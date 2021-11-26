@@ -7,36 +7,18 @@ Functions:
 import os
 import asyncio
 import datetime
+
 from lxml import etree, builder
 from aiohttp import ClientSession
-from dotenv import load_dotenv
 
-from app import DEFAULT_INFO
+from app import DEFAULT_INFO, url_pattern
 from app.async_prod import produce as pr
 from app.models import WeatherXML
 
-load_dotenv()
 
-URL_PATTERN = (
-    "http://api.openweathermap.org/data/2.5/weather?q={}&units={}&appid={}&mode=xml"
-)
-
-
-def get_city_url(city: str, unit: str = "metric"):
-    """Get single city url.
-    ...
-    :param city: str
-        Name of the city
-    :param unit: str
-        URL param to choose temperature's unit of measure
-        Default:  'metric' - for temperature in Celsius
-        Optional: 'imperial' - for temperature in Fahrenheit
-                  '' - for temperature in Kelvin
-    :return url : str
-        URL for api call to openweathermap.org
-    """
-    api = os.getenv("OPEN_WEATHER_API_SECRET")
-    return URL_PATTERN.format(city, unit, api)
+def get_url(city: str) -> str:
+    """Get url for api call."""
+    return url_pattern.format(city)
 
 
 def create_lxml_weather(country, city, temperature, condition, date):
@@ -111,7 +93,7 @@ async def gather_weather():
         loop = asyncio.get_event_loop()
         for country, cities in DEFAULT_INFO.items():
             for city in cities:
-                url = get_city_url(city)
+                url = get_url(city)
                 task = loop.create_task(fetch_url_data(session, url, country))
                 tasks.append(task)
         weather = await asyncio.gather(*tasks)
