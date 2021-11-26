@@ -31,10 +31,10 @@
         </tr>
         {% for country, weather in files_data.items() %}
             <tr>
-                <th> {{ weather.get_name() }} </th>
-                <th> {{ weather.get_first_check() }} </th>
-                <th> {{ weather.get_last_check() }} </th>
-                <th> {{ weather.get_count() }} </th>
+                <th> {{ weather.name }} </th>
+                <th> {{ weather.first_check }} </th>
+                <th> {{ weather.last_check }} </th>
+                <th> {{ weather.count }} </th>
             </tr>
         {% endfor %}
     </table>
