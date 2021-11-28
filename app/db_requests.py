@@ -16,30 +16,30 @@ import xmltodict
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 
-from app import session as session_sql
+from app import session
 from app.models import City, Weather
-
 from app.models import CountryDBStatistic, FreshWeather
 
 
-def save_city_to_db(data: dict):
-    """Save data to City table.
-
-    :param data: dict
-        Dict with weather data {'country': <value>,
-                                'city': <value>,
-                                'temperature': <value>,
-                                'condition': <value>,
-                                'created_date': <value>}
-    """
-    try:
-        session_sql.add(City(name=data["city"], country=data["country"]))
-        session_sql.commit()
-    except IntegrityError:
-        session_sql.rollback()
+def error_catch(f):
+    """Decorator to catch IntegrityError."""
+    def wrapper(*args, **kwargs):
+        try:
+            f(*args, **kwargs)
+            session.commit()
+        except IntegrityError:
+            session.rollback()
+    return wrapper
 
 
-def save_weather_to_db(data: dict):
+@error_catch
+def save_city(city: str, country: str):
+    """Save data to City table."""
+    session.add(City(name=city, country=country))
+
+
+@error_catch
+def save_weather(data: dict):
     """Save data to Weather table.
 
     :param data: dict
@@ -49,8 +49,9 @@ def save_weather_to_db(data: dict):
                                 'condition': <value>,
                                 'created_date': <value>})
     """
-    city = session_sql.query(City).filter(City.name == data["city"]).one()
-    session_sql.add(
+    save_city(city=data["city"], country=data["country"])
+    city = session.query(City).filter(City.name == data["city"]).one()
+    session.add(
         Weather(
             city_id=city.id,
             temperature=data["temperature"],
@@ -58,45 +59,41 @@ def save_weather_to_db(data: dict):
             created_date=data["created_date"],
         )
     )
-    session_sql.commit()
 
 
-def save_data_to_db(data):
+def save_data_to_db(data: bytes):
     """Save weather data to database.
 
     :param data: bytes
-        XML bytes string
+        XML weather data.
     """
-    data = transform_data(data)
-    save_city_to_db(data)
-    save_weather_to_db(data)
+    save_weather(transform_data(data))  # TODO: verify xml data?
 
 
-def transform_data(data):
+def transform_data(data: bytes) -> dict:  # TODO: verify xml data?
     """Transform XML weather data to dict.
+
     :param data: bytes
-        XML bytes string.
-    :return weather: dict
-        Dict with weather data {'country': <value>,
-                                'city': <value>,
-                                'temperature': <value>,
-                                'condition': <value>,
-                                'created_date': <value>}
+        XML weather data.
+    :return {'country': <value>,
+             'city': <value>,
+             'temperature': <value>,
+             'condition': <value>,
+             'created_date': <value>}
     """
-    dict_data = xmltodict.parse(data)
-    for _, weather in dict_data.items():
+    for _, weather in xmltodict.parse(data).items():
         return weather
 
 
-def get_statistic_from_db():
+def get_statistic_from_db() -> dict:
     """Get fresh weather data from database.
 
-    :return weather_check: dict
-        Dict of CountryDBStatistic(country, records, last_check, last_city)
-        namedtuple objects.
+    :return {"<country_name>":
+                CountryDBStatistic(country, records, last_check, last_city),
+            ...}
     """
     data = (
-        session_sql.query(City.country, func.count(City.country))
+        session.query(City.country, func.count(City.country))
         .join(City.weather)
         .group_by(City.country)
         .order_by(City.country)
@@ -106,7 +103,7 @@ def get_statistic_from_db():
     weather_check = {}
     for country, records in data:
         last_check = (
-            session_sql.query(Weather.created_date)
+            session.query(Weather.created_date)
             .filter(City.country == country)
             .join(City.weather)
             .order_by(Weather.created_date.desc())
@@ -114,7 +111,7 @@ def get_statistic_from_db():
         )
 
         last_city = (
-            session_sql.query(City.name)
+            session.query(City.name)
             .filter(City.country == country)
             .join(City.weather)
             .order_by(Weather.id.desc())
@@ -129,18 +126,16 @@ def get_statistic_from_db():
     return weather_check
 
 
-def get_data_from_db():
+def get_data_from_db() -> list:
     """Get fresh weather data from database.
 
-    :return data: list
-        List of FreshWeather(country, city, temperature, condition)
-        namedtuple objects.
+    :return [FreshWeather(country, city, temperature, condition), ...]
     """
     data = []
-    cities = session_sql.query(func.distinct(City.name)).all()
+    cities = session.query(func.distinct(City.name)).all()
     for city in cities:
         country, city, temperature, condition = (
-            session_sql.query(
+            session.query(
                 City.country, City.name, Weather.temperature, Weather.condition
             )
             .filter(City.name == city[0])
