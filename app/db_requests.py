@@ -19,6 +19,7 @@ from sqlalchemy.exc import IntegrityError
 from app import session
 from app.models import City, Weather
 from app.models import CountryDBStatistic, FreshWeather
+from app.utils import validate
 
 
 def error_catch(db_f):
@@ -61,7 +62,8 @@ def save_weather(data: dict):
     )
 
 
-def save_data_to_db(data: bytes):  # TODO: verify xml data wrapper
+@validate
+def save_data_to_db(data: bytes):
     """Save weather data to database.
 
     :param data: bytes
@@ -70,7 +72,8 @@ def save_data_to_db(data: bytes):  # TODO: verify xml data wrapper
     save_weather(transform_data(data))
 
 
-def transform_data(data: bytes) -> dict:  # TODO: verify xml data wrapper
+@validate
+def transform_data(data: bytes) -> dict:
     """Transform XML weather data to dict.
 
     :param data: bytes

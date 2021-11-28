@@ -6,7 +6,7 @@ Functions:
 """
 from aio_pika import Message, DeliveryMode, ExchangeType
 
-from app.rabbitmq_reconnect import connection_wait
+from app.utils import connection_wait
 
 
 async def producer(loop, message_body, queue_name):

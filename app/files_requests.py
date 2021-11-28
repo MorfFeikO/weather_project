@@ -18,6 +18,7 @@ import logging
 import xmltodict
 
 from app.models import FreshWeather, File
+from app.utils import validate
 
 
 def get_filepath(data_folder: str = "files_data") -> str:
@@ -92,7 +93,8 @@ def get_data_from_files() -> list:
     return data
 
 
-def save_data_to_file(data: bytes):  # TODO: verify xml data wrapper
+@validate
+def save_data_to_file(data: bytes):
     """Save weather data to file.
 
     :param data: bytes
@@ -105,7 +107,8 @@ def save_data_to_file(data: bytes):  # TODO: verify xml data wrapper
         json.dump(weather_data, json_file)
 
 
-def xml_to_dict(data: bytes) -> tuple:  # TODO: verify xml data wrapper
+@validate
+def xml_to_dict(data: bytes) -> tuple:
     """Convert data from xml to dict.
 
     :param data: bytes

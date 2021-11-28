@@ -11,7 +11,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 from app.db_requests import save_data_to_db
 from app.files_requests import save_data_to_file
-from app.rabbitmq_reconnect import connection_wait
+from app.utils import connection_wait
 
 
 async def on_message_db(message: IncomingMessage):

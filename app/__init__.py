@@ -19,7 +19,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.declarative import declarative_base
 
-from app.config import config_map, PROJECT_DIR
+from app.config import config_map, PROJECT_DIR, error_data
 
 
 app = FastAPI()
@@ -42,3 +42,5 @@ base.metadata.create_all(engine)
 
 url_pattern = settings.URL_PATTERN
 default_info = settings.DEFAULT_INFO
+
+weather_schema = settings.WEATHER_SCHEMA

@@ -29,6 +29,16 @@ queries = {
     }
 
 
+error_data = b'<?xml version="1.0" encoding="UTF-8"?>' \
+             b'<root>' \
+             b'<country>XMLValidationError</country>' \
+             b'<city></city>'\
+             b'<temperature></temperature>' \
+             b'<condition></condition>'\
+             b'<created_date></created_date>' \
+             b'</root>'
+
+
 def get_default_info() -> dict:
     """Get default country/cities info."""
     return {
@@ -70,6 +80,7 @@ class BaseConfig:
     URL_PATTERN: str = create_weather_url_pattern()
     DEFAULT_INFO: dict = get_default_info()
     TEMPLATE_DIR = str(PROJECT_DIR / "templates")
+    WEATHER_SCHEMA = str(PROJECT_DIR / "schema.xsd")
 
 
 class TestingConfig(BaseConfig):

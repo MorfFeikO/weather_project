@@ -29,7 +29,6 @@ def create_lxml_weather(
     )
     declaration = b'<?xml version="1.0" encoding="UTF-8"?>'
     return b"".join((declaration, etree.tostring(tree)))
-    # return etree.tostring(tree)
 
 
 def get_data_from_response(data: bytes) -> tuple:  # TODO: verify xml wrapper
