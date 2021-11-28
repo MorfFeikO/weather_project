@@ -57,7 +57,9 @@ def get_statistic(request: Request):
     try:
         db_data = get_statistic_from_db()
         files_data = get_data(data_type="statistics")
-        args = {"request": request, "db_data": db_data, "files_data": files_data}
+        args = {"request": request,
+                "db_data": db_data,
+                "files_data": files_data}
         return templates.TemplateResponse("statistics_weather.html", args)
     except ConnectionError as e:  # concrete error
         error = {"message": e}

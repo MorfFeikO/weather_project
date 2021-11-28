@@ -21,11 +21,11 @@ from app.models import City, Weather
 from app.models import CountryDBStatistic, FreshWeather
 
 
-def error_catch(f):
+def error_catch(db_f):
     """Decorator to catch IntegrityError."""
     def wrapper(*args, **kwargs):
         try:
-            f(*args, **kwargs)
+            db_f(*args, **kwargs)
             session.commit()
         except IntegrityError:
             session.rollback()
@@ -61,16 +61,16 @@ def save_weather(data: dict):
     )
 
 
-def save_data_to_db(data: bytes):
+def save_data_to_db(data: bytes):  # TODO: verify xml data wrapper
     """Save weather data to database.
 
     :param data: bytes
         XML weather data.
     """
-    save_weather(transform_data(data))  # TODO: verify xml data?
+    save_weather(transform_data(data))
 
 
-def transform_data(data: bytes) -> dict:  # TODO: verify xml data?
+def transform_data(data: bytes) -> dict:  # TODO: verify xml data wrapper
     """Transform XML weather data to dict.
 
     :param data: bytes

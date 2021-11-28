@@ -9,7 +9,7 @@ from aio_pika import Message, DeliveryMode, ExchangeType
 from app.rabbitmq_reconnect import connection_wait
 
 
-async def produce(loop, message_body, queue_name):
+async def producer(loop, message_body, queue_name):
     """Connect producer to rabbitmq and deliver message.
 
     :param loop:
@@ -24,7 +24,9 @@ async def produce(loop, message_body, queue_name):
 
     # Creating a channel
     channel = await connection.channel()
-    weather_exchange = await channel.declare_exchange("weather", ExchangeType.DIRECT)
+    weather_exchange = await channel.declare_exchange(
+        "weather", ExchangeType.DIRECT
+    )
     message = Message(message_body, delivery_mode=DeliveryMode.PERSISTENT)
 
     # Sending the message

@@ -1,0 +1,5 @@
+[MASTER]
+jobs=4
+[FORMAT]
+max-line-length=79
+disable=

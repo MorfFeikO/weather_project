@@ -92,7 +92,7 @@ def get_data_from_files() -> list:
     return data
 
 
-def save_data_to_file(data: bytes):  # TODO: test bad data/validation
+def save_data_to_file(data: bytes):  # TODO: verify xml data wrapper
     """Save weather data to file.
 
     :param data: bytes
@@ -100,11 +100,12 @@ def save_data_to_file(data: bytes):  # TODO: test bad data/validation
     """
     country, city, created_date, weather_data = xml_to_dict(data)
     filename = f"{country}_{city}_{created_date}.txt"
-    with open(os.path.join(get_filepath(), filename), "w", encoding="utf-8") as json_file:
+    with open(os.path.join(get_filepath(), filename), "w", encoding="utf-8") \
+            as json_file:
         json.dump(weather_data, json_file)
 
 
-def xml_to_dict(data: bytes) -> tuple:  # TODO: test bad data/validation
+def xml_to_dict(data: bytes) -> tuple:  # TODO: verify xml data wrapper
     """Convert data from xml to dict.
 
     :param data: bytes
