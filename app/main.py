@@ -36,7 +36,9 @@ class ConnectionErrorRoute(APIRoute):
             except ConnectionError as exc:
                 body = await request.body()
                 detail = {"error": str(exc), "body": body.decode()}
-                raise HTTPException(status_code=404, detail=detail)
+                # raise HTTPException(status_code=404, detail=detail)
+                return templates.TemplateResponse("error.html", detail)
+
         return custom_route_handler
 
 
