@@ -4,14 +4,13 @@ Functions:
     connection_wait(host, loop, state=False)
 """
 import logging
-
+import time
 import lxml.etree
 
-from time import time
-from lxml.etree import XMLSyntaxError, XMLSchemaValidateError
+from lxml.etree import XMLSyntaxError
 from aio_pika import connect, ExchangeType
 
-from app import weather_schema, error_data
+from app import weather_schema
 
 
 class DirectExchange:
@@ -56,13 +55,13 @@ class DirectExchange:
 
         :return connection
         """
-        start = time()
+        start = time.time()
         while True:
             try:
                 connection = await connect(host=self.host, loop=self.loop)
                 return connection
             except ConnectionError:
-                if time() - start >= 5:
+                if time.time() - start >= 5:
                     break
         raise ConnectionError("""
         Couldn't connect to RabbitMQ server. You view previously stored data.

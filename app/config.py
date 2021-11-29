@@ -29,7 +29,7 @@ queries = {
     }
 
 
-error_data = b'<?xml version="1.0" encoding="UTF-8"?>' \
+ERROR_DATA = b'<?xml version="1.0" encoding="UTF-8"?>' \
              b'<root>' \
              b'<country>XMLValidationError</country>' \
              b'<city></city>'\

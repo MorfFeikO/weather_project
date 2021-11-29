@@ -1,13 +1,12 @@
+"""Test services.py."""
 import pytest
 
 from lxml import etree
 from aiohttp import ClientSession
-from unittest.mock import MagicMock, patch
 
 import app.services
 from app import url_pattern
 from app.models import WeatherXML
-from app.producer import producer
 
 
 from app.services import get_data_from_response, create_lxml_weather, \
@@ -23,7 +22,9 @@ def test_get_data_from_response(test_response_data):
 
 def test_create_lxml_weather():
     """Test create_lxml_weather()."""
-    test_result = create_lxml_weather("Ukraine", "Lviv", "4.21", "clear sky", "2021-11-21")
+    test_result = create_lxml_weather(
+        "Ukraine", "Lviv", "4.21", "clear sky", "2021-11-21"
+    )
     root = etree.fromstring(test_result)
     assert len(root.getchildren()) == 5
 
@@ -32,7 +33,9 @@ def test_create_lxml_weather():
 @pytest.mark.parametrize("url, country, city", [
     (url_pattern.format("Lviv"), "Ukraine", "Lviv"),
 ])
-async def test_fetch_url_data(monkeypatch, test_response_data, url, country, city):
+async def test_fetch_url_data(
+        monkeypatch, test_response_data, url, country, city
+):
     """Test fetch_url_data()."""
 
     def mock_lxml(country, city, temperature, condition, created_date):
@@ -52,7 +55,9 @@ async def test_fetch_url_data(monkeypatch, test_response_data, url, country, cit
     (url_pattern.format(""), "Ukraine", ""),
     (url_pattern.format("Lv"), "Ukraine", "Lv"),
 ])
-async def test_fetch_url_data_error(monkeypatch, test_response_data, url, country, city):
+async def test_fetch_url_data_error(
+        monkeypatch, test_response_data, url, country, city
+):
     """Test fetch_url_data_error()."""
 
     async with ClientSession() as session:
@@ -76,6 +81,7 @@ async def test_gather_weather(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_send_data_to_rabbitmq(monkeypatch):
+    """Test send_data_to_rabbitmq pass."""
 
     async def mock_weather():
         return [WeatherXML("Ukraine", b"")]

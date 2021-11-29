@@ -1,3 +1,4 @@
+"""Test db_requests.py."""
 import datetime
 import pytest
 
@@ -18,40 +19,6 @@ c = aliased(City, name="c")
 w = aliased(Weather, name="w")
 
 
-@pytest.fixture
-def test_data():
-    return {
-        "country": "China",
-        "city": "Beijing",
-        "temperature": "23",
-        "condition": "clear sky",
-        "created_date": datetime.date(2021, 11, 21)
-    }
-
-
-@pytest.fixture
-def test_db(test_session):
-    test_session.add(City(name="Beijing", country="China"))
-    test_session.add(City(name="Hong Kong", country="China"))
-    test_session.commit()
-
-    beijing = test_session.query(City).filter(City.name == "Beijing").one()
-    hong_kong = test_session.query(City).filter(City.name == "Hong Kong").one()
-    test_session.add(Weather(
-        city_id=beijing.id,
-        temperature=23.0,
-        condition="clear sky",
-        created_date=datetime.datetime(2021, 11, 21)))
-    test_session.add(Weather(
-        city_id=hong_kong.id,
-        temperature=20.0,
-        condition="sunny",
-        created_date=datetime.datetime(2021, 11, 22)))
-    test_session.commit()
-
-    yield test_session
-
-
 def test_save_city(test_session, test_data):
     """Test save_city()."""
     save_city(city=test_data["city"], country=test_data["country"])
@@ -65,7 +32,9 @@ def test_save_city(test_session, test_data):
     ("China", "Beijing", 1),
     ("China", "Hong Kong", 2),
 ])
-def test_save_city_duplicate(test_session, test_data, country, city, expected_len):
+def test_save_city_duplicate(
+        test_session, test_data, country, city, expected_len
+):
     """Test save_city() with duplicate in db."""
     save_city(city=test_data["city"], country=test_data["country"])
 

@@ -18,7 +18,6 @@ from sqlalchemy.exc import IntegrityError
 from app import session
 from app.models import City, Weather
 from app.models import CountryDBStatistic, FreshWeather
-from app.utils import validate
 
 
 def error_catch(db_f):

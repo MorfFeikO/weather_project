@@ -18,7 +18,6 @@ import logging
 import xmltodict
 
 from app.models import FreshWeather, File
-from app.utils import validate
 
 
 def get_filepath(data_folder: str = "files_data") -> str:

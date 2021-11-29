@@ -22,7 +22,7 @@ BASE_DIR = pathlib.Path(__file__).parent
 TEST_DIR = settings.TEST_DIR
 
 
-def test_get_filepath_dir_exists():  # TODO: fixture delete dirs before and after
+def test_get_filepath_dir_exists():
     """Test get_filepath()."""
     path = PROJECT_DIR / "test_dir"
     os.mkdir(path)
@@ -80,7 +80,8 @@ def test_get_data_empty(monkeypatch, files_list, input_data, expected):
     assert isinstance(test_func, dict)
 
 
-@pytest.mark.parametrize("files_list, input_data, expected_len, expected_instance", [
+@pytest.mark.parametrize(
+    "files_list, input_data, expected_len, expected_instance", [
         (["China_Beijing_20211121.txt"], "statistics", 1, CountryFile),
         (["China_Beijing_20211121.txt"], "data", 1, CityFile),
         (["China_Beijing_20211121.txt", "China_Beijing_20211120.txt"],
@@ -98,9 +99,9 @@ def test_get_data_empty(monkeypatch, files_list, input_data, expected):
         (["China_Beijing_20211121.txt", "Ukraine_Lviv_20211121.txt"],
          "data",
          2,
-         CityFile,)
-])
-def test_get_data(monkeypatch, files_list, input_data, expected_len, expected_instance):
+         CityFile,)])
+def test_get_data(
+        monkeypatch, files_list, input_data, expected_len, expected_instance):
     """Test get_data()."""
 
     def mock_files_list():

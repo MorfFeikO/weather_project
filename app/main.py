@@ -14,9 +14,9 @@ Routes:
     get_statistic()
         Route to weather statistic report.
 """
-import uvicorn
 from typing import Callable
-from fastapi import Request, HTTPException, Response
+import uvicorn
+from fastapi import Request, Response
 from fastapi.routing import APIRoute
 
 from app.services import send_data_to_rabbitmq
@@ -27,7 +27,9 @@ from app import app, templates
 
 
 class ConnectionErrorRoute(APIRoute):
+    """Route which catch ConnectionError."""
     def get_route_handler(self) -> Callable:
+        """ApiRoute super method rewrite."""
         original_route_handler = super().get_route_handler()
 
         async def custom_route_handler(request: Request) -> Response:

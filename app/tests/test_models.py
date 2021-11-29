@@ -5,26 +5,6 @@ import pytest
 from app.models import File
 
 
-@pytest.fixture
-def test_file():
-    file = File("China_Beijing_20211121.txt")
-    return file
-
-
-@pytest.fixture
-def test_city():
-    """CityFiles obj test data."""
-    city = File("China_Beijing_20211121.txt", key="data")
-    return city
-
-
-@pytest.fixture
-def test_country():
-    """CityFiles obj test data."""
-    country = File("China_Beijing_20211121.txt", key="statistics")
-    return country
-
-
 def test_file_getters(test_file):
     """Test File obj getters."""
     assert test_file.date == datetime.date(2021, 11, 21)

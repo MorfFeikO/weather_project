@@ -1,19 +1,18 @@
 """Async rabbitmq calls consumer."""
 import sys
 import asyncio
-import typer
 import logging
+import pathlib
+import typer
 
 from aio_pika import IncomingMessage
 
-from pathlib import Path
+sys.path.append(str(pathlib.Path(__file__).parent.parent))
 
-sys.path.append(str(Path(__file__).parent.parent))
-
+from app import rabbitmq_host
 from app.db_requests import save_data_to_db
 from app.files_requests import save_data_to_file
 from app.utils import DirectExchange
-from app import rabbitmq_host
 
 
 async def on_message_db(message: IncomingMessage):

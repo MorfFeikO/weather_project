@@ -31,13 +31,13 @@ def create_lxml_weather(
     return b"".join((declaration, etree.tostring(tree)))
 
 
-def get_data_from_response(data: bytes) -> tuple:  # TODO: verify xml wrapper
+def get_data_from_response(data: bytes) -> tuple:
     """Get data from xml response."""
     result = []
     root = etree.fromstring(data)
     for key in attributes:
-        for el in root.iter(key):
-            result.append(el.attrib[attributes[key]])
+        for child in root.iter(key):
+            result.append(child.attrib[attributes[key]])
     city, temperature, condition = result
     return city, temperature, condition
 
@@ -59,7 +59,7 @@ async def fetch_url_data(session: ClientSession, url: str, country: str):
     ))
 
 
-async def gather_weather():  # TODO: ValueError on cities
+async def gather_weather():
     """Get weather data for all requested cities cities.
 
     :return weather: list

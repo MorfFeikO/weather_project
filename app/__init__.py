@@ -19,7 +19,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.ext.declarative import declarative_base
 
-from app.config import config_map, PROJECT_DIR, error_data
+from app.config import config_map, PROJECT_DIR, ERROR_DATA
 
 
 app = FastAPI()

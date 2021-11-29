@@ -2,4 +2,5 @@
 jobs=4
 [FORMAT]
 max-line-length=79
-disable=
+extension-pkg-whitelist=lxml
+disable=R0903,W0613,E1101,W0212,R1710,C0413,C0206,W0632,W0150,W0621,E0401
