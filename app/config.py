@@ -81,12 +81,14 @@ class BaseConfig:
     DEFAULT_INFO: dict = get_default_info()
     TEMPLATE_DIR = str(PROJECT_DIR / "templates")
     WEATHER_SCHEMA = str(PROJECT_DIR / "schema.xsd")
+    RABBITMQ_HOST: str = os.getenv('RABBITMQ_HOST', "rabbitmq")
 
 
 class TestingConfig(BaseConfig):
     """Testing app config."""
     TEST_DIR = APP_DIR / "tests"
     SQLALCHEMY_DATABASE_URI: str = f"sqlite:///{TEST_DIR / 'test_db.sqlite3'}"
+    RABBITMQ_HOST: str = 'localhost'
 
 
 config_map = {

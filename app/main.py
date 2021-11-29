@@ -27,43 +27,31 @@ from app import app, templates
 @app.get("/")
 def index(request: Request):
     """Route to start page."""
-    try:
-        args = {"request": request}
-        return templates.TemplateResponse("start_page.html", args)
-    except ConnectionError as e:  # concrete error
-        error = {"message": e}
-        return templates.TemplateResponse("start_page.html", error)
+    args = {"request": request}
+    return templates.TemplateResponse("start_page.html", args)
 
 
 @app.get("/weather")
 async def check_weather(request: Request):
     """Route to fresh weather report."""
-    try:
-        await send_data_to_rabbitmq()
-        db_data = get_data_from_db()
-        files_data = get_data_from_files()
-        db_data.extend(files_data)
-        db_data.sort(key=lambda x: x.country)
-        args = {"request": request, "data": db_data}
-        return templates.TemplateResponse("check_weather.html", args)
-    except ConnectionError as e:  # concrete error
-        error = {"message": e}
-        return templates.TemplateResponse("start_page.html", error)
+    await send_data_to_rabbitmq()
+    db_data = get_data_from_db()
+    files_data = get_data_from_files()
+    db_data.extend(files_data)
+    db_data.sort(key=lambda x: x.country)
+    args = {"request": request, "data": db_data}
+    return templates.TemplateResponse("check_weather.html", args)
 
 
 @app.get("/statistic")
 def get_statistic(request: Request):
     """Route to weather statistic report."""
-    try:
-        db_data = get_statistic_from_db()
-        files_data = get_data(data_type="statistics")
-        args = {"request": request,
-                "db_data": db_data,
-                "files_data": files_data}
-        return templates.TemplateResponse("statistics_weather.html", args)
-    except ConnectionError as e:  # concrete error
-        error = {"message": e}
-        return templates.TemplateResponse("start_page.html", error)
+    db_data = get_statistic_from_db()
+    files_data = get_data(data_type="statistics")
+    args = {"request": request,
+            "db_data": db_data,
+            "files_data": files_data}
+    return templates.TemplateResponse("statistics_weather.html", args)
 
 
 if __name__ == "__main__":

@@ -6,6 +6,7 @@ Functions:
 """
 from aio_pika import Message, DeliveryMode, ExchangeType
 
+from app import rabbitmq_host
 from app.utils import connection_wait
 
 
@@ -20,7 +21,7 @@ async def producer(loop, message_body, queue_name):
         Name of the queue (name of the country).
     """
     # Perform connection
-    connection = await connection_wait(host="rabbitmq", loop=loop)
+    connection = await connection_wait(host=rabbitmq_host, loop=loop)
 
     # Creating a channel
     channel = await connection.channel()

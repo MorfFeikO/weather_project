@@ -41,8 +41,6 @@ def validate(f, schema=weather_schema):
                 return f(xml_data)
             else:
                 logging.error("XML data not valid with schema.")
-                return f(error_data)
         except XMLSyntaxError as err:
             logging.error(str(err))
-            return f(error_data)
     return wrapper

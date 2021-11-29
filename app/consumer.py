@@ -12,6 +12,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 from app.db_requests import save_data_to_db
 from app.files_requests import save_data_to_file
 from app.utils import connection_wait
+from app import rabbitmq_host
 
 
 async def on_message_db(message: IncomingMessage):
@@ -45,7 +46,7 @@ async def main(loop, queue_name, callback):
         Callback function depends on queue name.
     """
     # Perform connection
-    connection = await connection_wait(host="rabbitmq", loop=loop)
+    connection = await connection_wait(host=rabbitmq_host, loop=loop)
 
     # Creating a channel
     channel = await connection.channel()
