@@ -11,20 +11,25 @@
         {% endif %}
     </div>
 
-    <table class="table table-striped">
-        <tr>
-            <th> Country </th>
-            <th> City </th>
-            <th> Weather </th>
-            <th> Condition </th>
-        </tr>
-        {% for weather in data %}
+    {% if data %}
+        <h2> Fresh Weather </h2>
+        <table class="table table-striped">
             <tr>
-                <th> {{ weather.country }} </th>
-                <th> {{ weather.city }} </th>
-                <th> {{ weather.temperature }} </th>
-                <th> {{ weather.condition }} </th>
+                <th> Country </th>
+                <th> City </th>
+                <th> Weather </th>
+                <th> Condition </th>
             </tr>
-        {% endfor %}
-    </table>
+            {% for weather in data %}
+                <tr>
+                    <td> {{ weather.country }} </td>
+                    <td> {{ weather.city }} </td>
+                    <td> {{ weather.temperature }} </td>
+                    <td> {{ weather.condition }} </td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p> Hm, there is no weather info yet. </p>
+    {% endif %}
 {% endblock %}

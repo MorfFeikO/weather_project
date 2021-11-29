@@ -4,6 +4,8 @@
 
 {% block body %}
     <h2> Database statistic </h2>
+
+    {% if db_data %}
     <table class="table table-striped">
         <tr>
             <th> Country </th>
@@ -20,8 +22,12 @@
             </tr>
         {% endfor %}
     </table>
+    {% else %}
+        <p> Hm, there is no weather info yet. </p>
+    {% endif %}
 
     <h2> Files statistic </h2>
+    {% if files_data %}
     <table class="table table-striped">
         <tr>
             <th> Country </th>
@@ -38,4 +44,7 @@
             </tr>
         {% endfor %}
     </table>
+    {% else %}
+        <p> Hm, there is no weather info yet. </p>
+    {% endif %}
 {% endblock %}
