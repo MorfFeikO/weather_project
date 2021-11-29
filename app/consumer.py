@@ -2,6 +2,7 @@
 import sys
 import asyncio
 import typer
+import logging
 
 from aio_pika import IncomingMessage
 
@@ -64,17 +65,22 @@ def consumer_run(queue_name):
         Name of the queue (name of the country).
     """
     loop = asyncio.get_event_loop()
-
-    # there are workers for 5 countries in the list.
-    # What about others if they will be added?
-    # Additional worker for other countries is!
     if queue_name not in consumer_list:
         queue_name = "other"
 
-    loop.create_task(
-        main(loop, queue_name=queue_name, callback=consumer_list[queue_name])
-    )
-    loop.run_forever()
+    try:
+        loop.create_task(main(
+            loop,
+            queue_name=queue_name,
+            callback=consumer_list[queue_name]
+        ))
+        loop.run_forever()
+    except ConnectionError as exc:
+        err_msg = {
+            "error": str(exc) + f". Queue {queue_name} didn't connect."
+        }
+        logging.error(err_msg)
+        sys.exit(1)
 
 
 consumer_list = {

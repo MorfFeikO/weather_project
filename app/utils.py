@@ -6,6 +6,8 @@ Functions:
 import logging
 
 import lxml.etree
+
+from time import time
 from lxml.etree import XMLSyntaxError, XMLSchemaValidateError
 from aio_pika import connect, ExchangeType
 
@@ -42,20 +44,22 @@ class DirectExchange:
         """
         return await self.channel.declare_queue(queue, durable=True)
 
-    async def connection_wait(self, state=False):
+    async def connection_wait(self):
         """Connect to rabbitmq host.
 
-        :param state: default: False
         :return connection
         """
-        connection = ""
-        while not state:
+        start = time()
+        while True:
             try:
                 connection = await connect(host=self.host, loop=self.loop)
-                state = True
+                return connection
             except ConnectionError:
-                state = False
-        return connection
+                if time() - start >= 5:
+                    break
+        raise ConnectionError("""
+        Couldn't connect to RabbitMQ server. You view previously stored data.
+        """)
 
 
 def validate_xml(schema, xml):

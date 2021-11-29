@@ -93,7 +93,6 @@ def get_data_from_files() -> list:
     return data
 
 
-# @validate
 def save_data_to_file(data: bytes):
     """Save weather data to file.
 
@@ -107,7 +106,6 @@ def save_data_to_file(data: bytes):
         json.dump(weather_data, json_file)
 
 
-# @validate
 def xml_to_dict(data: bytes) -> tuple:
     """Convert data from xml to dict.
 

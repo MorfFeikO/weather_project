@@ -12,7 +12,6 @@ Functions:
         Get statistic from database.
 """
 import xmltodict
-
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 
@@ -62,7 +61,6 @@ def save_weather(data: dict):
     )
 
 
-# @validate
 def save_data_to_db(data: bytes):
     """Save weather data to database.
 
@@ -72,7 +70,6 @@ def save_data_to_db(data: bytes):
     save_weather(transform_data(data))
 
 
-# @validate
 def transform_data(data: bytes) -> dict:
     """Transform XML weather data to dict.
 

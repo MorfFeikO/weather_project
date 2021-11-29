@@ -42,7 +42,5 @@ base.metadata.create_all(engine)
 
 url_pattern = settings.URL_PATTERN
 default_info = settings.DEFAULT_INFO
-
 weather_schema = settings.WEATHER_SCHEMA
-
 rabbitmq_host = settings.RABBITMQ_HOST
