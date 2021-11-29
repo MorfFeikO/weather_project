@@ -3,7 +3,7 @@ import sys
 import asyncio
 import typer
 
-from aio_pika import IncomingMessage, ExchangeType
+from aio_pika import IncomingMessage
 
 from pathlib import Path
 
@@ -11,7 +11,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 from app.db_requests import save_data_to_db
 from app.files_requests import save_data_to_file
-from app.utils import connection_wait
+from app.utils import DirectExchange
 from app import rabbitmq_host
 
 
@@ -45,21 +45,13 @@ async def main(loop, queue_name, callback):
     :param callback: func
         Callback function depends on queue name.
     """
-    # Perform connection
-    connection = await connection_wait(host=rabbitmq_host, loop=loop)
-
-    # Creating a channel
-    channel = await connection.channel()
-    await channel.set_qos(prefetch_count=1)
-
     # Declare exchange
-    direct_weather_exchange = await channel.declare_exchange(
-        "weather", ExchangeType.DIRECT
-    )
+    exchange = DirectExchange(loop=loop, host=rabbitmq_host)
+    weather_exchange = await exchange.declare_exc()
 
     # Declaring queue
-    queue = await channel.declare_queue(queue_name, durable=True)
-    await queue.bind(direct_weather_exchange, routing_key=queue_name)
+    queue = await exchange.declare_queue(queue=queue_name)
+    await queue.bind(weather_exchange, routing_key=queue_name)
 
     # Start listening the random queue
     await queue.consume(callback)
@@ -76,16 +68,16 @@ def consumer_run(queue_name):
     # there are workers for 5 countries in the list.
     # What about others if they will be added?
     # Additional worker for other countries is!
-    if queue_name not in CONSUMER_LIST:
+    if queue_name not in consumer_list:
         queue_name = "other"
 
     loop.create_task(
-        main(loop, queue_name=queue_name, callback=CONSUMER_LIST[queue_name])
+        main(loop, queue_name=queue_name, callback=consumer_list[queue_name])
     )
     loop.run_forever()
 
 
-CONSUMER_LIST = {
+consumer_list = {
     "Ukraine": on_message_db,
     "UK": on_message_db,
     "Italy": on_message_txt,
