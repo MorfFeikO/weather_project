@@ -16,6 +16,13 @@ from app import weather_schema, error_data
 
 class DirectExchange:
     """Direct exchange class."""
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if not hasattr(cls, "instance"):
+            cls._instance = super(DirectExchange, cls).__new__(cls)
+        return cls._instance
+
     def __init__(self, loop, host=None, name="weather"):
         self.loop = loop
         self.host = host
@@ -26,7 +33,7 @@ class DirectExchange:
 
     async def _set_connection(self):
         """Set connection to rabbitmq server."""
-        self.connection = await self.connection_wait()
+        self.connection = await self._connection_wait()
 
     async def declare_exc(self):
         """Declare direct exchange.
@@ -44,7 +51,7 @@ class DirectExchange:
         """
         return await self.channel.declare_queue(queue, durable=True)
 
-    async def connection_wait(self):
+    async def _connection_wait(self):
         """Connect to rabbitmq host.
 
         :return connection
