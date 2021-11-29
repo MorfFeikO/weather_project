@@ -15,7 +15,7 @@ from app import weather_schema, error_data
 
 
 class DirectExchange:
-    """Direct exchange class."""
+    """Direct singleton exchange class."""
     _instance = None
 
     def __new__(cls, *args, **kwargs):

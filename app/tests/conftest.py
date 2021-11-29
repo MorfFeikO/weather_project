@@ -1,6 +1,6 @@
 import pytest
 
-from app import app, session, engine, base
+from app import session, engine, base
 
 
 @pytest.fixture

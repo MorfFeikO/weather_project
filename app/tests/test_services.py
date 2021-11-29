@@ -2,6 +2,7 @@ import pytest
 
 from lxml import etree
 from aiohttp import ClientSession
+from unittest.mock import MagicMock, patch
 
 import app.services
 from app import url_pattern
@@ -73,17 +74,12 @@ async def test_gather_weather(monkeypatch):
     assert len(test_result) == 25
 
 
-# @pytest.mark.asyncio
-# async def test_send_data_to_rabbitmq(monkeypatch):
-#
-#     async def mock_weather():
-#         return [WeatherXML("Ukraine", b"")]
-#
-#     async def mock_producer():
-#         return True
-#
-#     monkeypatch.setattr(app.services, "gather_weather", mock_weather)
-#     monkeypatch.setattr(app.producer, "producer", mock_producer)
-#
-#     test_result = await send_data_to_rabbitmq()
-#     assert test_result is None
+@pytest.mark.asyncio
+async def test_send_data_to_rabbitmq(monkeypatch):
+
+    async def mock_weather():
+        return [WeatherXML("Ukraine", b"")]
+
+    monkeypatch.setattr(app.services, "gather_weather", mock_weather)
+
+    await send_data_to_rabbitmq()
