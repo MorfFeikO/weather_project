@@ -4,7 +4,7 @@
 
 {% block body %}
     <h2> Database statistic </h2>
-    <table>
+    <table class="table table-striped">
         <tr>
             <th> Country </th>
             <th> Weather records </th>
@@ -13,16 +13,16 @@
         </tr>
         {% for country, weather in db_data.items() %}
             <tr>
-                <th> {{ weather.country }} </th>
-                <th> {{ weather.records }} </th>
-                <th> {{ weather.last_check }} </th>
-                <th> {{ weather.last_city }} </th>
+                <td> {{ weather.country }} </td>
+                <td> {{ weather.records }} </td>
+                <td> {{ weather.last_check }} </td>
+                <td> {{ weather.last_city }} </td>
             </tr>
         {% endfor %}
     </table>
 
     <h2> Files statistic </h2>
-    <table>
+    <table class="table table-striped">
         <tr>
             <th> Country </th>
             <th> First weather check </th>
@@ -31,10 +31,10 @@
         </tr>
         {% for country, weather in files_data.items() %}
             <tr>
-                <th> {{ weather.name }} </th>
-                <th> {{ weather.first_check }} </th>
-                <th> {{ weather.last_check }} </th>
-                <th> {{ weather.count }} </th>
+                <td> {{ weather.name }} </td>
+                <td> {{ weather.first_check }} </td>
+                <td> {{ weather.last_check }} </td>
+                <td> {{ weather.count }} </td>
             </tr>
         {% endfor %}
     </table>

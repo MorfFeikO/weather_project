@@ -62,7 +62,7 @@ async def check_weather(request: Request, err_msg=None):
         files_data = get_data_from_files()
         db_data.extend(files_data)
         db_data.sort(key=lambda x: x.country)
-        args = {"request": request, "data": db_data, "err-msg": err_msg}
+        args = {"request": request, "data": db_data, "err_msg": err_msg}
         return templates.TemplateResponse("check_weather.html", args)
 
 

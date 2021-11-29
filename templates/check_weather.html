@@ -3,7 +3,15 @@
 {% block title %} Check Weather {% endblock %}
 
 {% block body %}
-    <table>
+
+    <div>
+        {% if err_msg %}
+        <p> O_ops, there were some issues, </p>
+        <p> {{ err_msg }} </p>
+        {% endif %}
+    </div>
+
+    <table class="table table-striped">
         <tr>
             <th> Country </th>
             <th> City </th>
