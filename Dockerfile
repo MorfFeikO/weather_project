@@ -4,6 +4,7 @@ RUN mkdir -p /home/myapp/weather_project
 
 WORKDIR /home/myapp/weather_project
 
+ENV PYTHONPATH "${PYTHONPATH}:/home/myapp/weather_project"
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 

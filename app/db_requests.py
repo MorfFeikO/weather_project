@@ -62,7 +62,7 @@ def save_weather(data: dict):
 
 
 @process_message
-def save_data_to_db(data: bytes):
+async def save_data_to_db(data: bytes):
     """Save weather data to database.
 
     :param data: bytes

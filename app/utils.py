@@ -91,5 +91,5 @@ def process_message(callback):
     """RabbitMQ callback wrapper."""
     async def wrapper(message: IncomingMessage):
         async with message.process():
-            return await callback(message.body.decode())
+            return await callback(message.body)
     return wrapper

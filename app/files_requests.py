@@ -94,7 +94,7 @@ def get_data_from_files() -> list:
 
 
 @process_message
-def save_data_to_file(data: bytes):
+async def save_data_to_file(data: bytes):
     """Save weather data to file.
 
     :param data: bytes
