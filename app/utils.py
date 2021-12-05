@@ -9,6 +9,7 @@ import lxml.etree
 
 from lxml.etree import XMLSyntaxError
 from aio_pika import connect, ExchangeType
+from aio_pika import IncomingMessage
 
 from app import weather_schema
 
@@ -83,4 +84,12 @@ def validate(fun, schema=weather_schema):
             logging.error("XML data not valid with schema.")
         except XMLSyntaxError as err:
             logging.error(str(err))
+    return wrapper
+
+
+def process_message(callback):
+    """RabbitMQ callback wrapper."""
+    async def wrapper(message: IncomingMessage):
+        async with message.process():
+            return await callback(message.body.decode())
     return wrapper

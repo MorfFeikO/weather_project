@@ -18,6 +18,7 @@ from sqlalchemy.exc import IntegrityError
 from app import session
 from app.models import City, Weather
 from app.models import CountryDBStatistic, FreshWeather
+from app.utils import process_message
 
 
 def error_catch(db_f):
@@ -60,6 +61,7 @@ def save_weather(data: dict):
     )
 
 
+@process_message
 def save_data_to_db(data: bytes):
     """Save weather data to database.
 

@@ -18,6 +18,7 @@ import logging
 import xmltodict
 
 from app.models import FreshWeather, File
+from app.utils import process_message
 
 
 def get_filepath(data_folder: str = "files_data") -> str:
@@ -92,6 +93,7 @@ def get_data_from_files() -> list:
     return data
 
 
+@process_message
 def save_data_to_file(data: bytes):
     """Save weather data to file.
 
