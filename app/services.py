@@ -6,13 +6,16 @@ Functions:
 """
 import asyncio
 import datetime
+import logging
 
 from lxml import etree, builder
+from lxml.etree import XMLSchemaValidateError
 from aiohttp import ClientSession
 
 from app import default_info, url_pattern
 from app.producer import producer
 from app.models import WeatherXML
+from app.utils import validate_api_xml
 
 
 def create_lxml_weather(
@@ -31,6 +34,7 @@ def create_lxml_weather(
     return b"".join((declaration, etree.tostring(tree)))
 
 
+@validate_api_xml
 def get_data_from_response(data: bytes) -> tuple:
     """Get data from xml response."""
     result = []
@@ -38,8 +42,7 @@ def get_data_from_response(data: bytes) -> tuple:
     for key in attributes:
         for child in root.iter(key):
             result.append(child.attrib[attributes[key]])
-    city, temperature, condition = result
-    return city, temperature, condition
+    return result[0], result[1], result[2]
 
 
 async def fetch_url_data(session: ClientSession, url: str, country: str):
@@ -70,9 +73,15 @@ async def gather_weather():
         loop = asyncio.get_event_loop()
         for country, cities in default_info.items():
             for city in cities:
-                url = url_pattern.format(city)
-                task = loop.create_task(fetch_url_data(session, url, country))
-                tasks.append(task)
+                try:
+                    url = url_pattern.format(city)
+                    task = loop.create_task(fetch_url_data(
+                        session, url, country
+                    ))
+                    tasks.append(task)
+                except XMLSchemaValidateError as exc:
+                    logging.error(f"City: {city} - {str(exc)}")
+                    break
         weather = await asyncio.gather(*tasks)
     return weather
 
@@ -80,7 +89,6 @@ async def gather_weather():
 async def send_data_to_rabbitmq():
     """Send data to rabbitmq."""
     weather_data_list = await gather_weather()
-
     loop = asyncio.get_event_loop()
     for weather_data in weather_data_list:
         await producer(

@@ -81,7 +81,9 @@ class BaseConfig:
     DEFAULT_INFO: dict = get_default_info()
     TEMPLATE_DIR = str(PROJECT_DIR / "templates")
     WEATHER_SCHEMA = str(PROJECT_DIR / "schema.xsd")
+    SCHEMA_API = str(PROJECT_DIR / "schema_api.xsd")
     RABBITMQ_HOST: str = os.getenv('RABBITMQ_HOST', "rabbitmq")
+    LOGGING_CONFIG_FILE = str(PROJECT_DIR / "weather_project.log")
 
 
 class TestingConfig(BaseConfig):

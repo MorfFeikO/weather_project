@@ -7,11 +7,11 @@ import logging
 import time
 import lxml.etree
 
-from lxml.etree import XMLSyntaxError
+from lxml.etree import XMLSyntaxError, XMLSchemaValidateError
 from aio_pika import connect, ExchangeType
 from aio_pika import IncomingMessage
 
-from app import weather_schema
+from app import weather_schema, schema_api
 
 
 class DirectExchange:
@@ -75,15 +75,17 @@ def validate_xml(schema, xml):
     return xml_validator.validate(lxml.etree.fromstring(xml))
 
 
-def validate(fun, schema=weather_schema):
+async def validate_after_rabbit(fun, schema=weather_schema):
     """Xml validator wrapper."""
-    def wrapper(xml_data):
+    async def wrapper(message: IncomingMessage):
         try:
-            if validate_xml(schema, xml_data):
-                return fun(xml_data)
-            logging.error("XML data not valid with schema.")
-        except XMLSyntaxError as err:
-            logging.error(str(err))
+            if validate_xml(schema, message.body):
+                return fun(message.body)
+            raise XMLSchemaValidateError("XML data not valid with schema.")
+        except (XMLSyntaxError, XMLSchemaValidateError) as exc:
+            logging.error(f"ID: {message.message_id}."
+                          f" ROUTE_KEY: {message.routing_key}."
+                          f" {str(exc)}")
     return wrapper
 
 
@@ -92,4 +94,19 @@ def process_message(callback):
     async def wrapper(message: IncomingMessage):
         async with message.process():
             return await callback(message.body)
+    return wrapper
+
+
+def validate_api_xml(fun, schema=schema_api):
+    """Xml validator wrapper."""
+    def wrapper(data):
+        try:
+            if validate_xml(schema, data):
+                return fun(data)
+            raise XMLSchemaValidateError(
+                "XMLSchemaValidationError."
+                " Something went wrong. XML data is not valid."
+            )
+        except XMLSyntaxError as exc:
+            logging.error(f"{str(exc)}")
     return wrapper

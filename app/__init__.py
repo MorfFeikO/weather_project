@@ -8,6 +8,7 @@ Objects:
     url_pattern: str
     default_info: str
 """
+import logging
 import os
 
 from functools import lru_cache
@@ -35,6 +36,11 @@ settings = get_settings()
 
 templates = Jinja2Templates(directory=settings.TEMPLATE_DIR)
 
+logging.basicConfig(
+    filename=settings.LOGGING_CONFIG_FILE,
+    level=logging.ERROR
+)
+
 engine = create_engine(settings.SQLALCHEMY_DATABASE_URI)
 session = Session(bind=engine)
 base = declarative_base()
@@ -43,4 +49,5 @@ base.metadata.create_all(engine)
 url_pattern = settings.URL_PATTERN
 default_info = settings.DEFAULT_INFO
 weather_schema = settings.WEATHER_SCHEMA
+schema_api = settings.SCHEMA_API
 rabbitmq_host = settings.RABBITMQ_HOST
