@@ -75,12 +75,12 @@ def validate_xml(schema, xml):
     return xml_validator.validate(lxml.etree.fromstring(xml))
 
 
-async def validate_after_rabbit(fun, schema=weather_schema):
+def validate_after_rabbit(fun, schema=weather_schema):
     """Xml validator wrapper."""
     async def wrapper(message: IncomingMessage):
         try:
             if validate_xml(schema, message.body):
-                return fun(message.body)
+                return await fun(message)
             raise XMLSchemaValidateError("XML data not valid with schema.")
         except (XMLSyntaxError, XMLSchemaValidateError) as exc:
             logging.error(f"ID: {message.message_id}."
@@ -91,6 +91,7 @@ async def validate_after_rabbit(fun, schema=weather_schema):
 
 def process_message(callback):
     """RabbitMQ callback wrapper."""
+    @validate_after_rabbit
     async def wrapper(message: IncomingMessage):
         async with message.process():
             return await callback(message.body)
