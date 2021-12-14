@@ -37,10 +37,12 @@ class ConnectionErrorRoute(APIRoute):
                 return await original_route_handler(request)
             except ConnectionError as exc:
                 body = await request.body()
-                detail = {"error": str(exc), "body": body.decode()}
-                # raise HTTPException(status_code=404, detail=detail)
+                detail = {
+                    "request": request,
+                    "error": str(exc),
+                    "body": body.decode()
+                }
                 return templates.TemplateResponse("error.html", detail)
-
         return custom_route_handler
 
 
@@ -61,13 +63,12 @@ async def check_weather(request: Request, err_msg=None):
         await send_data_to_rabbitmq()
     except ConnectionError as exc:
         err_msg = {"error": str(exc)}
-    finally:
-        db_data = get_data_from_db()
-        files_data = get_data_from_files()
-        db_data.extend(files_data)
-        db_data.sort(key=lambda x: x.country)
-        args = {"request": request, "data": db_data, "err_msg": err_msg}
-        return templates.TemplateResponse("check_weather.html", args)
+    db_data = get_data_from_db()
+    files_data = get_data_from_files()
+    db_data.extend(files_data)
+    db_data.sort(key=lambda x: x.country)
+    args = {"request": request, "data": db_data, "err_msg": err_msg}
+    return templates.TemplateResponse("check_weather.html", args)
 
 
 @app.get("/statistic")

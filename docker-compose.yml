@@ -5,7 +5,7 @@ services:
     build: .
     command: uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 8000
     volumes:
-      - .files_data:/home/myapp/weather_project/files_data
+      - .files_data:/home/myapp/weather_project/.files_data
     ports:
       - 8004:8000
     environment:
@@ -36,7 +36,7 @@ services:
     command: python app/consumer.py
     restart: always
     volumes:
-      - .files_data:/home/myapp/weather_project/files_data
+      - .files_data:/home/myapp/weather_project/.files_data
     depends_on:
       - rabbitmq
       - db
