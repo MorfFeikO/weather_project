@@ -15,13 +15,14 @@ import os
 import json
 import datetime
 import logging
+from typing import List, Optional, Tuple, Dict
 import xmltodict
 
 from app.models import FreshWeather, File
 from app.utils import process_message
 
 
-def get_filepath(data_folder: str = "files_data") -> str:
+def get_filepath(data_folder: str = ".files_data") -> str:
     """Get weather data files path.
 
     :param data_folder: str
@@ -36,7 +37,7 @@ def get_filepath(data_folder: str = "files_data") -> str:
     return filepath
 
 
-def get_files_list() -> list:
+def get_files_list() -> List[Optional[str]]:
     """Get list of files in a weather data path."""
     filepath = get_filepath()
     if os.path.exists(filepath):
@@ -49,12 +50,10 @@ def get_data(data_type: str) -> dict:
 
     :param data_type: str
         "data" -> Get cities data.
-            :return: dict_: dict
-                dict_ = {"<city_name>": CityFile(), ...}
+            :return: {"<city_name>": CityFile(), ...}
 
         "statistics" -> Get countries statistics.
-            :return: dict_: dict
-                dict_ = {"<country_name>": CountryFile(), ...}
+            :return: {"<country_name>": CountryFile(), ...}
     """
     dict_ = {}
     for filename in get_files_list():
@@ -71,11 +70,10 @@ def get_data(data_type: str) -> dict:
     return dict_
 
 
-def get_data_from_files() -> list:
+def get_data_from_files() -> List[Optional[FreshWeather]]:
     """Get fresh weather data from files.
 
-    :return data: list
-        data = [FreshWeather(country, city, temperature, condition), ...]
+    :return: [FreshWeather(country, city, temperature, condition), ...]
     """
     data = []
     for _, city_obj in get_data(data_type="data").items():
@@ -94,7 +92,7 @@ def get_data_from_files() -> list:
 
 
 @process_message
-async def save_data_to_file(data: bytes):
+async def save_data_to_file(data: bytes) -> None:
     """Save weather data to file.
 
     :param data: bytes
@@ -107,7 +105,7 @@ async def save_data_to_file(data: bytes):
         json.dump(weather_data, json_file)
 
 
-def xml_to_dict(data: bytes) -> tuple:
+def xml_to_dict(data: bytes) -> Tuple[str, str, str, Dict[str, str]]:
     """Convert data from xml to dict.
 
     :param data: bytes

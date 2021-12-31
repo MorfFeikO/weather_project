@@ -1,9 +1,38 @@
 """Module with pytest fixtures."""
 import datetime
+import os
+import json
+import shutil
 import pytest
 
-from app import session, engine, base
+
+from app import session, engine, base, settings
 from app.models import File, City, Weather
+
+TEST_DIR = settings.TEST_DIR
+
+
+@pytest.fixture(scope="module")
+def test_data_folder():
+    """Test folder with data creation fixture."""
+    test_folder = TEST_DIR / "test_data"
+    os.mkdir(test_folder)
+    filenames = ["China_Beijing_20211121.txt", "Italy_Rome_20211121.txt"]
+    test_filedata = {
+        "country": "country",
+        "city": "city",
+        "temperature": "temperature",
+        "condition": "condition"
+    }
+    for filename in filenames:
+        with open(
+                os.path.join(test_folder, filename),
+                "w",
+                encoding="utf-8"
+        ) as json_file:
+            json.dump(test_filedata, json_file)
+    yield test_folder
+    shutil.rmtree(test_folder)
 
 
 @pytest.fixture
