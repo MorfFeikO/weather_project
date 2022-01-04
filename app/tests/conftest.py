@@ -10,7 +10,7 @@ from app import session, engine, base, settings
 from app.models import File, City, Weather
 
 TEST_DIR = settings.TEST_DIR
-FOLDER_NAME = "test_data"
+FOLDER_NAME = ".files_data"
 test_folder = TEST_DIR / FOLDER_NAME
 
 
@@ -20,10 +20,10 @@ def data_folder_with_one_file(folder=test_folder):
     os.mkdir(folder)
     filename = "China_Beijing_20211121.txt"
     file_data = {
-        "country": "test_country",
-        "city": "test_city",
-        "temperature": "test_temperature",
-        "condition": "test_condition"
+        "country": "China",
+        "city": "Beijing",
+        "temperature": "23.0",
+        "condition": "sunny"
     }
 
     with open(os.path.join(test_folder, filename), "w", encoding="utf-8") \

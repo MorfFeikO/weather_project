@@ -22,7 +22,7 @@ from app.config import PROJECT_DIR
 
 BASE_DIR = pathlib.Path(__file__).parent
 TEST_DIR = settings.TEST_DIR
-FOLDER_NAME = "test_data"
+FOLDER_NAME = ".files_data"
 test_folder = TEST_DIR / FOLDER_NAME
 
 
@@ -73,7 +73,7 @@ class TestGetFilesList:
         self.mock_path.return_value = test_folder
         monkeypatch.setattr(app.files_requests, "get_filepath", self.mock_path)
 
-        assert get_files_list() == os.listdir(TEST_DIR / "test_data")
+        assert get_files_list() == os.listdir(TEST_DIR / ".files_data")
 
 
 class TestGetData:
@@ -239,10 +239,10 @@ class TestGetDataFromFiles:
 
         test_result = load_data_from_single_file(city_file_obj)
         assert len(test_result) == 4
-        assert test_result["country"] == "test_country"
-        assert test_result["city"] == "test_city"
-        assert test_result["temperature"] == "test_temperature"
-        assert test_result["condition"] == "test_condition"
+        assert test_result["country"] == "China"
+        assert test_result["city"] == "Beijing"
+        assert test_result["temperature"] == "23.0"
+        assert test_result["condition"] == "sunny"
 
 
 # @pytest.mark.asyncio

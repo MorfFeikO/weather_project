@@ -2,82 +2,88 @@
 fastapi Routes.
 
 Routes:
-    @app.get('/')
-    index()
-        Route to start page.
-
-    @app.get('/weather')
+    @app.get('api/weather')
     check_weather()
-        Route to fresh weather report.
+        Get weather info.
 
-    @app.get('/statistic')
+    @app.get('api/statistic')
     get_statistic()
-        Route to weather statistic report.
+        Get weather statistic.
 """
-from typing import Callable
+from typing import Dict, List, Union
+# from typing import Callable
 import uvicorn
-from fastapi import Request, Response
-from fastapi.routing import APIRoute
+# from fastapi import Request, Response, HTTPException
+# from fastapi.routing import APIRoute
 
 from app.services import send_data_to_rabbitmq
 from app.db_requests import get_data_from_db, get_statistic_from_db
-from app.files_requests import get_data_from_files, get_data
+from app.files_requests import get_data_from_files, get_statistic_from_files
 
-from app import app, templates
-
-
-class ConnectionErrorRoute(APIRoute):
-    """Route which catch ConnectionError."""
-    def get_route_handler(self) -> Callable:
-        """ApiRoute super method rewrite."""
-        original_route_handler = super().get_route_handler()
-
-        async def custom_route_handler(request: Request) -> Response:
-            try:
-                return await original_route_handler(request)
-            except ConnectionError as exc:
-                body = await request.body()
-                detail = {
-                    "request": request,
-                    "error": str(exc),
-                    "body": body.decode()
-                }
-                return templates.TemplateResponse("error.html", detail)
-        return custom_route_handler
+from app import app
 
 
-app.router.route_class = ConnectionErrorRoute
+# class ConnectionErrorRoute(APIRoute):
+#     """Route which catch ConnectionError."""
+#     def get_route_handler(self) -> Callable:
+#         """ApiRoute super method rewrite."""
+#         original_route_handler = super().get_route_handler()
+#
+#         async def custom_route_handler(request: Request) -> Response:
+#             try:
+#                 return await original_route_handler(request)
+#             except ConnectionError as exc:
+#                 body = await request.body()
+#                 detail = {
+#                     "request": request,
+#                     "error": str(exc),
+#                     "body": body.decode()
+#                 }
+#
+#                 return HTTPException(status_code=404, detail=detail)
+#         return custom_route_handler
+#
+#
+# app.router.route_class = ConnectionErrorRoute
 
 
-@app.get("/")
-def index(request: Request):
-    """Route to start page."""
-    args = {"request": request}
-    return templates.TemplateResponse("start_page.html", args)
+@app.get("/api/check")
+async def check_weather():
+    """Make weather request and save data."""
+    await send_data_to_rabbitmq()
+    return {}
 
 
-@app.get("/weather")
-async def check_weather(request: Request, err_msg=None):
-    """Route to fresh weather report."""
-    try:
-        await send_data_to_rabbitmq()
-    except ConnectionError as exc:
-        err_msg = {"error": str(exc)}
-    db_data = get_data_from_db()
-    files_data = get_data_from_files()
-    db_data.extend(files_data)
-    db_data.sort(key=lambda x: x.country)
-    args = {"request": request, "data": db_data, "err_msg": err_msg}
-    return templates.TemplateResponse("check_weather.html", args)
+@app.get("/api/weather")
+def get_weather() -> List[Dict[str, str]]:
+    """Get weather info.
+
+    :return [{"country": "<value>",
+              "city": "<value>",
+              "temperature": "<value>",
+              "condition": "<value>"}, ...]
+    """
+    data = get_data_from_db()
+    data.extend(get_data_from_files())
+    data.sort(key=lambda x: x["country"])
+    return data
 
 
-@app.get("/statistic")
-def get_statistic(request: Request):
-    """Route to weather statistic report."""
-    db_data = get_statistic_from_db()
-    files_data = get_data(data_type="statistics")
-    args = {"request": request, "db_data": db_data, "files_data": files_data}
-    return templates.TemplateResponse("statistics_weather.html", args)
+@app.get("/api/statistic")
+def get_statistic() -> Dict[str, List[Dict[str, Union[str, int]]]]:
+    """Get weather statistic.
+
+    :return {"db": [{"countryName": <value>,
+                     "recordsCount": <value>,
+                     "lastCheckDate": <value>,
+                     "lastCityCheck": <value>}, ...],
+             "files": [{"countryName": <value>,
+                        "firstCheckDate": <value>,
+                        "lastCheckDate": <value>,
+                        "countValue": <value>}, ...]}
+    """
+    return {"db": get_statistic_from_db(),
+            "files": get_statistic_from_files()}
 
 
 if __name__ == "__main__":

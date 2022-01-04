@@ -11,7 +11,7 @@ Functions:
     get_statistic_from_db()
         Get statistic from database.
 """
-from typing import List, Dict
+from typing import List, Dict, Union
 
 import xmltodict
 
@@ -94,7 +94,7 @@ def get_statistic_from_db() -> List[Dict[str, str]]:
     :return: [{"countryName": <value>,
                "recordsCount": <value>,
                "lastCheckDate": <value>,
-               "countCityCheck": <value>}, ...]
+               "lastCityCheck": <value>}, ...]
     """
     country_records = (session.query(City.country, func.count(City.country))
                        .join(City.weather)
@@ -107,7 +107,8 @@ def get_statistic_from_db() -> List[Dict[str, str]]:
     return result
 
 
-def load_db_statistic(country, records):
+def load_db_statistic(country: str, records: int) \
+        -> Dict[str, Union[str, int]]:
     """Form db_statistic"""
     return {"countryName": country,
             "recordsCount": records,
