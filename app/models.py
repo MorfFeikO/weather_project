@@ -159,11 +159,3 @@ class CountryFile(File, prefix="statistics"):
 
 
 WeatherXML = collections.namedtuple("WeatherXML", ["country", "xml_data"])
-
-CountryDBStatistic = collections.namedtuple(
-    "CountryDBStatistic", ["country", "records", "last_check", "last_city"]
-)
-
-FreshWeather = collections.namedtuple(
-    "FreshWeather", ["country", "city", "temperature", "condition"]
-)

@@ -1,5 +1,4 @@
 """Test files_requests.py."""
-# import json
 import os
 import pathlib
 import shutil
@@ -13,15 +12,18 @@ from app.files_requests import (
     get_files_list,
     get_data_from_files,
     xml_to_dict,
-    # save_data_to_file,
     get_data,
+    get_statistic_from_files,
+    load_data_from_single_file
 )
-from app.models import FreshWeather, CountryFile, CityFile
+from app.models import CountryFile, CityFile
 from app import settings
 from app.config import PROJECT_DIR
 
 BASE_DIR = pathlib.Path(__file__).parent
 TEST_DIR = settings.TEST_DIR
+FOLDER_NAME = "test_data"
+test_folder = TEST_DIR / FOLDER_NAME
 
 
 class TestGetFilepath:
@@ -50,6 +52,28 @@ class TestGetFilepath:
         """Test with default directory."""
         assert get_filepath() == str(PROJECT_DIR / ".files_data")
         shutil.rmtree(PROJECT_DIR / ".files_data")
+
+
+class TestGetFilesList:
+    """Test get_files_list()."""
+    mock_path = MagicMock()
+
+    def test_get_files_list(self, monkeypatch):
+        """Test with empty folder."""
+
+        self.mock_path.return_value = TEST_DIR / "random_dir"
+        monkeypatch.setattr(app.files_requests, "get_filepath", self.mock_path)
+
+        assert get_files_list() == []
+
+    @pytest.mark.usefixtures("data_folder_with_one_file")
+    def test_get_files_list_with_default_data(self, monkeypatch):
+        """Test with default data creation."""
+
+        self.mock_path.return_value = test_folder
+        monkeypatch.setattr(app.files_requests, "get_filepath", self.mock_path)
+
+        assert get_files_list() == os.listdir(TEST_DIR / "test_data")
 
 
 class TestGetData:
@@ -135,71 +159,90 @@ class TestGetData:
         assert len(test_func) == 0
 
 
-class TestGetFilesList:
-    """Test get_files_list()."""
-    mock_path = MagicMock()
+class TestGetStatisticFromFiles:
+    """Test get_statistic_from_files()."""
+    mock_statistic = MagicMock()
 
-    def test_get_files_list(self, monkeypatch):
-        """Test get_files_list(). with empty folder."""
+    def test_get_statistic_from_files(self, monkeypatch, country_file_obj):
+        """Test from list with single file."""
+        country_name = "test_country_name"
+        self.mock_statistic.return_value = {country_name: country_file_obj}
+        monkeypatch.setattr(
+            app.files_requests,
+            "get_data",
+            self.mock_statistic
+        )
 
-        self.mock_path.return_value = TEST_DIR / "random_dir"
-        monkeypatch.setattr(app.files_requests, "get_filepath", self.mock_path)
+        test_result = get_statistic_from_files()
+        assert len(test_result) == 1
+        for element in test_result:
+            assert element["countryName"] == "China"
+            assert element["firstCheckDate"] == "21 nov 2021"
+            assert element["lastCheckDate"] == "21 nov 2021"
+            assert element["countValue"] == 1
 
-        test_func = get_files_list()
-        assert test_func == []
+    def test_get_statistic_from_files_empty(self, monkeypatch):
+        """Test with empty list."""
+        self.mock_statistic.return_value = {}
+        monkeypatch.setattr(
+            app.files_requests,
+            "get_data",
+            self.mock_statistic
+        )
 
-    @pytest.mark.usefixtures("test_data_folder")
-    def test_get_files_list_with_default_data(self, monkeypatch):
-        """Test get_files_list() with default data creation."""
-
-        self.mock_path.return_value = TEST_DIR / "test_data"
-        monkeypatch.setattr(app.files_requests, "get_filepath", self.mock_path)
-
-        test_func = get_files_list()
-        assert test_func == os.listdir(TEST_DIR / "test_data")
+        test_result = get_statistic_from_files()
+        assert len(test_result) == 0
 
 
 class TestGetDataFromFiles:
     """Test get_data_from_files()."""
-    mock_path = MagicMock()
+    mock_info = MagicMock()
 
-    @pytest.mark.usefixtures("test_data_folder")
-    def test_get_data_from_files(self, monkeypatch):
-        """Test get data from files."""
+    def test_get_data_from_files(self, monkeypatch, city_file_obj):
+        """Test from list with single file."""
 
-        self.mock_path.return_value = TEST_DIR / "test_data"
-        monkeypatch.setattr(app.files_requests, "get_filepath", self.mock_path)
+        def mock_load(_):
+            return {"country": "test_country",
+                    "city": "test_city",
+                    "temperature": "test_temperature",
+                    "condition": "test_condition"}
+
+        city_name = "test_city_name"
+        self.mock_info.return_value = {city_name: city_file_obj}
+        monkeypatch.setattr(app.files_requests, "get_data", self.mock_info)
+        monkeypatch.setattr(
+            app.files_requests,
+            "load_data_from_single_file",
+            mock_load
+        )
 
         test_func = get_data_from_files()
+        assert len(test_func) == 1
         for weather in test_func:
-            assert isinstance(weather, FreshWeather)
-        assert len(test_func) == 2
+            assert len(weather) == 4
+            for key in weather:
+                assert key in ("city", "condition", "country", "temperature")
 
     def test_get_data_from_files_empty(self, monkeypatch):
         """Test get data from files return empty dict."""
 
-        self.mock_path.return_value = TEST_DIR / "random_dir"
-        monkeypatch.setattr(app.files_requests, "get_filepath", self.mock_path)
+        self.mock_info.return_value = TEST_DIR / "random_dir"
+        monkeypatch.setattr(app.files_requests, "get_filepath", self.mock_info)
 
         test_func = get_data_from_files()
         assert len(test_func) == 0
 
+    def test_load_data_from_single_file(self, monkeypatch, city_file_obj):
+        """Test load from single file."""
+        self.mock_info.return_value = test_folder
+        monkeypatch.setattr(app.files_requests, "get_filepath", self.mock_info)
 
-def test_xml_to_string():
-    """Test xml_to_string()."""
-    input_data = (
-        b'<?xml version="1.0" encoding="UTF-8"?>'
-        b"<current><country>China</country><city>Beijing</city>"
-        b"<temperature>4.28</temperature><condition>clear sky</condition>"
-        b"<created_date>2021-11-21 13:44:28.36545</created_date></current>"
-    )
-    expected = ("China", "Beijing", "20211121", {
-            "country": "China",
-            "city": "Beijing",
-            "temperature": "4.28",
-            "condition": "clear sky",
-        })
-    assert xml_to_dict(input_data) == expected
+        test_result = load_data_from_single_file(city_file_obj)
+        assert len(test_result) == 4
+        assert test_result["country"] == "test_country"
+        assert test_result["city"] == "test_city"
+        assert test_result["temperature"] == "test_temperature"
+        assert test_result["condition"] == "test_condition"
 
 
 # @pytest.mark.asyncio
@@ -231,3 +274,20 @@ def test_xml_to_string():
 #         assert data["city"] == "Hong Kong"
 #         assert data["temperature"] == "4.28"
 #         assert data["condition"] == "clear sky"
+
+
+def test_xml_to_string():
+    """Test xml_to_string()."""
+    input_data = (
+        b'<?xml version="1.0" encoding="UTF-8"?>'
+        b"<current><country>China</country><city>Beijing</city>"
+        b"<temperature>4.28</temperature><condition>clear sky</condition>"
+        b"<created_date>2021-11-21 13:44:28.36545</created_date></current>"
+    )
+    expected = ("China", "Beijing", "20211121", {
+            "country": "China",
+            "city": "Beijing",
+            "temperature": "4.28",
+            "condition": "clear sky",
+        })
+    assert xml_to_dict(input_data) == expected

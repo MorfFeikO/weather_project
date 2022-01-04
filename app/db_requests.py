@@ -11,13 +11,15 @@ Functions:
     get_statistic_from_db()
         Get statistic from database.
 """
+from typing import List, Dict
+
 import xmltodict
+
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 
 from app import session
 from app.models import City, Weather
-from app.models import CountryDBStatistic, FreshWeather
 from app.utils import process_message
 
 
@@ -49,7 +51,7 @@ def save_weather(data: dict):
                                 'condition': <value>,
                                 'created_date': <value>})
     """
-    save_city(city=data["city"], country=data["country"])
+    save_city(data["city"], data["country"])
     city = session.query(City).filter(City.name == data["city"]).one()
     session.add(
         Weather(
@@ -86,63 +88,85 @@ def transform_data(data: bytes) -> dict:
         return weather
 
 
-def get_statistic_from_db() -> dict:
+def get_statistic_from_db() -> List[Dict[str, str]]:
     """Get fresh weather data from database.
 
-    :return {"<country_name>":
-                CountryDBStatistic(country, records, last_check, last_city),
-            ...}
+    :return: [{"countryName": <value>,
+               "recordsCount": <value>,
+               "lastCheckDate": <value>,
+               "countCityCheck": <value>}, ...]
     """
-    data = (
-        session.query(City.country, func.count(City.country))
-        .join(City.weather)
-        .group_by(City.country)
-        .order_by(City.country)
-        .all()
-    )
-
-    weather_check = {}
-    for country, records in data:
-        last_check = (
-            session.query(Weather.created_date)
-            .filter(City.country == country)
-            .join(City.weather)
-            .order_by(Weather.created_date.desc())
-            .first()
-        )
-
-        last_city = (
-            session.query(City.name)
-            .filter(City.country == country)
-            .join(City.weather)
-            .order_by(Weather.id.desc())
-            .first()
-        )
-        weather_check[country] = CountryDBStatistic(
-            country,
-            records,
-            last_check[0].strftime("%H:%M %d %b %Y").lower(),
-            last_city[0],
-        )
-    return weather_check
+    country_records = (session.query(City.country, func.count(City.country))
+                       .join(City.weather)
+                       .group_by(City.country)
+                       .order_by(City.country)
+                       .all())
+    result = []
+    for country, records in country_records:
+        result.append(load_db_statistic(country, records))
+    return result
 
 
-def get_data_from_db() -> list:
+def load_db_statistic(country, records):
+    """Form db_statistic"""
+    return {"countryName": country,
+            "recordsCount": records,
+            "lastCheckDate": get_last_check(country),
+            "lastCityCheck": get_last_city(country)}
+
+
+def get_last_check(country: str) -> str:
+    """Get last check date."""
+    last_check = (session.query(Weather.created_date)
+                  .filter(City.country == country)
+                  .join(City.weather)
+                  .order_by(Weather.created_date.desc())
+                  .first())
+    return last_check[0].strftime("%H:%M %d %b %Y").lower()
+
+
+def get_last_city(country: str) -> str:
+    """Get last city checked."""
+    last_city = (session.query(City.name)
+                 .filter(City.country == country)
+                 .join(City.weather)
+                 .order_by(Weather.id.desc())
+                 .first()
+                 )
+    return last_city[0]
+
+
+def get_data_from_db() -> List[Dict[str, str]]:
     """Get fresh weather data from database.
 
-    :return [FreshWeather(country, city, temperature, condition), ...]
+    :return [{"country": "<value>",
+              "city": "<value>",
+              "temperature": "<value>",
+              "condition": "<value>"}, ...]
     """
     data = []
     cities = session.query(func.distinct(City.name)).all()
     for city in cities:
-        country, city, temperature, condition = (
-            session.query(
-                City.country, City.name, Weather.temperature, Weather.condition
-            )
-            .filter(City.name == city[0])
-            .join(City.weather)
-            .order_by(Weather.created_date.desc())
-            .first()
-        )
-        data.append(FreshWeather(country, city, temperature, condition))
+        data.append(load_data_from_single_city(city[0]))
     return data
+
+
+def load_data_from_single_city(city: str) -> Dict[str, str]:
+    """Load data from single city from db.
+
+    :return: {"country": "<value>",
+              "city": "<value>",
+              "temperature": "<value>",
+              "condition": "<value>"}
+    """
+    country, city, temperature, condition = (session.query(
+        City.country, City.name, Weather.temperature, Weather.condition
+    ).join(City.weather)
+     .filter(City.name == city)
+     .order_by(Weather.created_date.desc())
+     .first())
+
+    return {"country": country,
+            "city": city,
+            "temperature": temperature,
+            "condition": condition}

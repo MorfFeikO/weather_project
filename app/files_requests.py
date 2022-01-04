@@ -8,7 +8,7 @@ Functions:
     get_data_from_files()
         Get fresh weather data from files.
 
-    get_statistic_from_data()
+    get_statistic_from_files()
         Get statistic from files.
 """
 import os
@@ -18,7 +18,7 @@ import logging
 from typing import List, Optional, Tuple, Dict
 import xmltodict
 
-from app.models import FreshWeather, File
+from app.models import File
 from app.utils import process_message
 
 
@@ -70,25 +70,52 @@ def get_data(data_type: str) -> dict:
     return dict_
 
 
-def get_data_from_files() -> List[Optional[FreshWeather]]:
+def get_statistic_from_files() -> List[Dict[str, str]]:
+    """Get statistic from files.
+
+    :return: [{"countryName": <value>,
+               "firstCheckDate": <value>,
+               "lastCheckDate": <value>,
+               "countValue": <value>}, ...]
+    """
+    result = []
+    data = get_data(data_type=TYPE["statistics"])
+    for _, value in data.items():
+        result.append(
+            {"countryName": value.name,
+             "firstCheckDate": value.first_check,
+             "lastCheckDate": value.last_check,
+             "countValue": value.count}
+        )
+    return result
+
+
+def get_data_from_files() -> List[Dict[str, str]]:
     """Get fresh weather data from files.
 
-    :return: [FreshWeather(country, city, temperature, condition), ...]
+    :return: [{"country": "<value>",
+               "city": "<value>",
+               "temperature": "<value>",
+               "condition": "<value>"}, ...]
     """
-    data = []
-    for _, city_obj in get_data(data_type="data").items():
-        file = os.path.join(get_filepath(), city_obj.last_check_filename)
-        with open(file, "r", encoding="utf-8") as json_file:
-            json_data = json.load(json_file)
-            data.append(
-                FreshWeather(
-                    json_data["country"],
-                    json_data["city"],
-                    json_data["temperature"],
-                    json_data["condition"],
-                )
-            )
-    return data
+    result = []
+    data = get_data(data_type=TYPE["data"])
+    for _, city_file in data.items():
+        result.append(load_data_from_single_file(city_file))
+    return result
+
+
+def load_data_from_single_file(city_file):
+    """Get fresh weather data from single file.
+
+    :return: {"country": "<value>",
+              "city": "<value>",
+              "temperature": "<value>",
+              "condition": "<value>"}
+    """
+    file = os.path.join(get_filepath(), city_file.last_check_filename)
+    with open(file, "r", encoding="utf-8") as json_file:
+        return json.load(json_file)
 
 
 @process_message
@@ -127,3 +154,9 @@ def xml_to_dict(data: bytes) -> Tuple[str, str, str, Dict[str, str]]:
         ).strftime("%Y%m%d")
         del value["created_date"]
         return country, city, created_date, value
+
+
+TYPE = {
+    "data": "data",
+    "statistics": "statistics"
+}
