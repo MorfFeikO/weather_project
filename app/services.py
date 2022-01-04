@@ -4,6 +4,7 @@ Functions:
     send_data_to_rabbitmq()
         Send data to rabbitmq.
 """
+from typing import Tuple
 import asyncio
 import datetime
 import logging
@@ -35,7 +36,7 @@ def create_lxml_weather(
 
 
 @validate_api_xml
-def get_data_from_response(data: bytes) -> tuple:
+def get_data_from_response(data: bytes) -> Tuple[str, str, str]:
     """Get data from xml response."""
     result = []
     root = etree.fromstring(data)
@@ -45,7 +46,8 @@ def get_data_from_response(data: bytes) -> tuple:
     return result[0], result[1], result[2]
 
 
-async def fetch_url_data(session: ClientSession, url: str, country: str):
+async def fetch_url_data(session: ClientSession, url: str, country: str) \
+        -> WeatherXML:
     """Get weather info from single city.
 
     :return WeatherXML: namedtuple

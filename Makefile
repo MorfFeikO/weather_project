@@ -4,6 +4,9 @@ ps:  # watch all containers
 images:  # watch all images
 	sudo docker images
 
+stop:
+	sudo docker-compose stop
+
 build:
 	sudo docker-compose build
 
@@ -24,3 +27,18 @@ web-shell:  # cd files_data --> rm *.txt --> to clean all files
 
 postgres-shell:  # psql -U postgres --> \c postgres -->
 	sudo docker exec -it weather_project-db-1 bash
+
+set-test-env:
+	python app/tests/change_env.py 'test'
+
+set-prod-env:
+	python app/tests/change_env.py 'prod'
+
+test: stop set-test-env
+	-pytest app/tests
+	set-prod-env
+
+cov: stop set-test-env
+	-coverage run -m pytest app/
+	set-prod-env
+	coverage report -m
