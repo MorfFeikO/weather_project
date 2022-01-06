@@ -11,7 +11,7 @@ build:
 	sudo docker-compose build
 
 up:  build
-	sudo docker-compose up -d --remove-orphans
+	sudo docker-compose up -d
 
 prune-volumes:
 	sudo docker volume prune --force

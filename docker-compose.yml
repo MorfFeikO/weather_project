@@ -1,8 +1,22 @@
 version: "3.8"
 
 services:
+  client:
+    container_name: "client"
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    ports:
+      - 3000:80
+    depends_on:
+      - web
+
   web:
-    build: .
+    container_name: "web"
+    build:
+      context: .
+      dockerfile: Dockerfile.api
     command: uvicorn app.main:app --reload --workers 1 --host 0.0.0.0 --port 8000
     volumes:
       - .files_data:/home/myapp/weather_project/.files_data
@@ -15,6 +29,7 @@ services:
       - rabbitmq
 
   db:
+    container_name: "db"
     restart: always
     image: postgres
     volumes:
@@ -23,8 +38,8 @@ services:
     ports:
       - 5436:5432
 
-
   rabbitmq:
+    container_name: "rabbitmq"
     image: rabbitmq:3-management
     restart: always
     ports:
@@ -32,7 +47,10 @@ services:
       - 15672:15672
 
   consumer-1:
-    build: .
+    container_name: "consumer"
+    build:
+      context: .
+      dockerfile: Dockerfile.api
     command: python app/consumer.py
     restart: always
     volumes:
@@ -42,8 +60,6 @@ services:
       - db
       - web
     env_file: .env
-
-
 
 volumes:
   pgdata:

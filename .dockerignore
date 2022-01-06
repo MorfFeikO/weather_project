@@ -6,3 +6,4 @@ Dockerfile
 __pycache__
 .pytest_cache
 .coverage
+front/node_modules
