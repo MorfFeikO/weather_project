@@ -5,7 +5,10 @@
   "dependencies": {
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "react-scripts": "0.9.5"
+    "react-redux": "^7.2.6",
+    "react-scripts": "0.9.5",
+    "redux": "^4.1.2",
+    "redux-thunk": "^2.4.1"
   },
   "devDependencies": {},
   "scripts": {
@@ -14,6 +17,5 @@
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   },
-
   "proxy": "http://localhost:8004"
 }

@@ -15,6 +15,7 @@ from functools import lru_cache
 
 from fastapi import FastAPI
 from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
@@ -25,6 +26,13 @@ from app.config import config_map, PROJECT_DIR, ERROR_DATA
 
 app = FastAPI()
 
+origins = ["*"]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_methods=["*"],
+    allow_headers=["*"]
+    )
 
 @lru_cache(maxsize=128)
 def get_settings():

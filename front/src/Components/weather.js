@@ -1,31 +1,20 @@
-import React, {useState, useEffect} from "react";
-
-
-const GET_WEATHER_URL = "http://localhost:8004/api/weather"
-
-// const defProp = {
-//     records: [
-//         {country: "Ukraine", city: "Odessa", temperature: "2", condition: "sunny"},
-//         {country: "Ukraine", city: "Lviv", temperature: "23", condition: "rainy"}
-//     ]}
+import React, { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { loadAPIWeather } from "../Action";
 
 export default function WeatherComponent(props) {
-    const [records, setRecords] = useState([]);
+    const records = useSelector(state => state.weather.records);
+    const dispatch = useDispatch();
+
+    let loadData = () => dispatch(loadAPIWeather());
 
     useEffect(() => {
-        fetch(GET_WEATHER_URL)
-        .then(function(response) {
-            return response.json();
-        })
-        .then(function(response) {
-            console.log(response);
-            setRecords(response);
-        })
-    }, [])
+        loadData();
+    }, []);
 
     let weatherRecords = records.map((record, index) => {
         return (<WeatherRecord record={record} key={index}/>);
-    })
+    });
     return (<div>
             <table>
                 <thead>
