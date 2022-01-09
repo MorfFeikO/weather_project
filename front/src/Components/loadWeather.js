@@ -1,8 +1,6 @@
 import React from "react";
 import { useDispatch } from "react-redux";
-import { loadAPIData } from "../Action";
-import { GET_STATISTIC_URL, GET_WEATHER_URL } from "../Constants";
-
+import { updateAPIData } from "../Action";
 
 export default function LoadWeather(props) {
     const dispatch = useDispatch();
@@ -10,8 +8,7 @@ export default function LoadWeather(props) {
     let handleOnClick = (e) => {
         e.preventDefault();
         console.log('handledOnClick');
-        dispatch(loadAPIData(GET_WEATHER_URL));
-        dispatch(loadAPIData(GET_STATISTIC_URL));
+        dispatch(updateAPIData());
     }
 
     return (

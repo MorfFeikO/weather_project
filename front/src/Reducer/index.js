@@ -1,5 +1,5 @@
 import { combineReducers } from "redux";
-import { START_LOADING_WEATHER, STOP_LOADING_WEATHER, REFRESH_DATA_WEATHER, START_LOADING_STATISTIC, STOP_LOADING_STATISTIC, REFRESH_DATA_STATISTIC } from "../Constants";
+import { START_LOADING_WEATHER, STOP_LOADING_WEATHER, REFRESH_DATA_WEATHER, START_LOADING_STATISTIC, STOP_LOADING_STATISTIC, REFRESH_DATA_STATISTIC, START_LOADING, STOP_LOADING } from "../Constants";
 
 let weatherRecords = [
     {country: "Ukraine", city: "Odessa", temperature: "2", condition: "sunny"},
@@ -19,14 +19,18 @@ let statisticRecords = {
 }
 
 let weatherState = {
-    records: [...weatherRecords],
+    records: [],
     loading: false
 }
 
 let statisticState = {
-    records: {...statisticRecords},
+    records: {db: [], files: []},
     loading: false
 }
+
+// let updateState = {
+//     loading: false
+// }
 
 export function weather(state=weatherState, action) {
     switch (action.type) {
@@ -54,7 +58,19 @@ export function statistic(state=statisticState, action) {
     }
 }
 
+// export function updater(state=updateState, action) {
+//     switch (action.type) {
+//         case START_LOADING:
+//             return {...state, loading: true}
+//         case STOP_LOADING:
+//             return {...state, loading: false}
+//         default:
+//             return state;
+//     }
+// }
+
 export const rootReducer = combineReducers({
     weather,
-    statistic
+    statistic,
+    // updater
 })

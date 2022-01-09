@@ -22,11 +22,11 @@ prune-containers:
 prune-images:
 	sudo docker image prune --force --all
 
-web-shell:  # cd files_data --> rm *.txt --> to clean all files
-	sudo docker exec -it weather_project-web-1 bash
+web-shell:  # cd .files_data --> rm *.txt --> to clean all files
+	sudo docker exec -it web bash
 
 postgres-shell:  # psql -U postgres --> \c postgres -->
-	sudo docker exec -it weather_project-db-1 bash
+	sudo docker exec -it db bash
 
 set-test-env:
 	python app/tests/change_env.py 'test'

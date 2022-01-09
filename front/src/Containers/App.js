@@ -4,9 +4,10 @@ import StatisticsComponents from '../Components/statistic';
 import WeatherComponent from '../Components/weather';
 import LoadWeather from '../Components/loadWeather';
 
+
 function App() {
     return (<table>
-
+      <LoadWeather/>
       <br/>
       <tbody>
         <tr>
