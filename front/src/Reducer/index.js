@@ -28,9 +28,9 @@ let statisticState = {
     loading: false
 }
 
-// let updateState = {
-//     loading: false
-// }
+let updateState = {
+    loading: false
+}
 
 export function weather(state=weatherState, action) {
     switch (action.type) {
@@ -58,19 +58,19 @@ export function statistic(state=statisticState, action) {
     }
 }
 
-// export function updater(state=updateState, action) {
-//     switch (action.type) {
-//         case START_LOADING:
-//             return {...state, loading: true}
-//         case STOP_LOADING:
-//             return {...state, loading: false}
-//         default:
-//             return state;
-//     }
-// }
+export function updater(state=updateState, action) {
+    switch (action.type) {
+        case START_LOADING:
+            return {...state, loading: true}
+        case STOP_LOADING:
+            return {...state, loading: false}
+        default:
+            return state;
+    }
+}
 
 export const rootReducer = combineReducers({
     weather,
     statistic,
-    // updater
+    updater
 })
