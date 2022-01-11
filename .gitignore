@@ -197,3 +197,11 @@ GitHub.sublime-settings
 !.vscode/launch.json
 !.vscode/extensions.json
 .history
+
+# Diff
+
+Makefile.bak
+app/tests/test_db.sqlite3
+.files_data/
+.vscode/
+pgdata/

@@ -1,6 +1,8 @@
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { loadAPIWeather } from "../Action";
+import Table from "react-bootstrap/Table";
+import "./componentTables.css";
 
 export default function WeatherComponent(props) {
     const records = useSelector(state => state.weather.records);
@@ -15,9 +17,9 @@ export default function WeatherComponent(props) {
     let weatherRecords = records.map((record, index) => {
         return (<WeatherRecord record={record} key={index}/>);
     });
-    return (<div>
-            <table>
-                <thead>
+    return (<div className="Weather-table">
+            <Table striped bordered hover className="Weather-table">
+                <thead className="Theader">
                     <tr>
                         <th>Country</th>
                         <th>City</th>
@@ -25,10 +27,10 @@ export default function WeatherComponent(props) {
                         <th>Condition</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody className="Tbody">
                     {weatherRecords}
                 </tbody>
-            </table>
+            </Table>
         </div>);
 }
 

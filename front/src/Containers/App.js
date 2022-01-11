@@ -1,20 +1,30 @@
 import React from 'react';
-import './App.css';
 import StatisticsComponents from '../Components/statistic';
 import WeatherComponent from '../Components/weather';
-import LoadWeather from '../Components/loadWeather';
 import { Switch, Route, Link } from "react-router-dom";
+import Nav from "react-bootstrap/Nav";
+import { LinkContainer } from "react-router-bootstrap";
+import Welcome from '../Components/Welcome';
 
 function App() {
     return (
         <div>
-          <h1>Welcome, to weather app.</h1>
-          <br/>
-          <LoadWeather/>
-          <ul>
-            <li><Link to="/weather">Weather</Link> - to watch weather in cities.</li>
-            <li><Link to="/statistic">Statistic</Link> - to watch weather report.</li>
-          </ul>
+          <Welcome/>
+          <Nav justify variant="tabs" defaultActiveKey="/">
+            <LinkContainer to="/">
+              <Nav.Link>
+                Home
+              </Nav.Link>
+            </LinkContainer>
+            <LinkContainer to="/weather">
+              <Nav.Link>
+                Weather report
+              </Nav.Link>
+            </LinkContainer>
+            <LinkContainer to="/statistic">
+              <Nav.Link>Statistic</Nav.Link>
+            </LinkContainer>
+          </Nav>
           <Switch>
             <Route path="/weather" component={WeatherComponent}/>
             <Route path="/statistic" component={StatisticsComponents}/>

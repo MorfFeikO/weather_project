@@ -1,6 +1,8 @@
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { loadAPIStatistic } from "../Action";
+import Table from "react-bootstrap/Table";
+import "./componentTables.css";
 
 export default function StatisticsComponents(props) {
     const records = useSelector(state => state.statistic.records);
@@ -43,8 +45,8 @@ function StatisticComponent(props) {
         }
     })
     return (<div>
-            <table>
-                <thead>
+            <Table striped bordered hover className="Statistic-table">
+                <thead className="Theader">
                     <tr>
                         <th>{label1}</th>
                         <th>{label2}</th>
@@ -52,10 +54,10 @@ function StatisticComponent(props) {
                         <th>{label4}</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody className="Tbody">
                     {weatherRecords}
                 </tbody>
-            </table>
+            </Table>
         </div>);
 }
 

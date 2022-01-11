@@ -88,10 +88,20 @@ function stopLoading() {
     }
 }
 
-export function updateAPIData() {
+const action = {
+    "/weather": loadAPIWeather,
+    "/statistic": loadAPIStatistic,
+}
+
+export function updateAPIData(pathname) {
     return (dispatch) => {
         dispatch(startLoading());
         fetch(types.GET_UPDATE_URL)
+        .then(function() {
+            if (Object.keys(action).includes(pathname)) {
+                dispatch(action[pathname]());
+            }
+        })
         .then(function() {
             dispatch(stopLoading());
         })

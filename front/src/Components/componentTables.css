@@ -1,0 +1,25 @@
+.welcome {
+    text-align: center;
+    font-family: 'Times New Roman', Times, serif;
+    font-weight: bolder;
+}
+
+.Weather-table {
+    text-align: center;
+}
+
+.Statistic-table {
+    text-align: center;
+}
+
+.Theader {
+    font-family: 'Times New Roman', Times, serif;
+    font-weight: bold;
+    font-size: x-large;
+    font-weight: bolder;
+    vertical-align: middle;
+}
+
+.Tbody {
+    font-family: 'Times New Roman', Times, serif;
+}
