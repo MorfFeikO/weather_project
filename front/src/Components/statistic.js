@@ -48,10 +48,10 @@ function StatisticComponent(props) {
             <Table striped bordered hover className="Statistic-table">
                 <thead className="Theader">
                     <tr>
-                        <th>{label1}</th>
-                        <th>{label2}</th>
-                        <th>{label3}</th>
-                        <th>{label4}</th>
+                        <th id="head1">{label1}</th>
+                        <th id="head2">{label2}</th>
+                        <th id="head3">{label3}</th>
+                        <th id="head4">{label4}</th>
                     </tr>
                 </thead>
                 <tbody className="Tbody">
@@ -82,3 +82,5 @@ function StatisticFileRecord(props) {
                 <th>{record.countValue}</th>
             </tr>);
 }
+
+export { StatisticDBRecord, StatisticFileRecord, StatisticComponent };
